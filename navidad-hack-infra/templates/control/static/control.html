@@ -188,7 +188,11 @@
 
   async function getJSON(url, opts) {
     const r = await fetch(url, opts);
-    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.statusText);
+    if (!r.ok) {
+      const e = new Error((await r.json().catch(() => ({}))).detail || r.statusText);
+      e.status = r.status;
+      throw e;
+    }
     return r.json();
   }
 
@@ -329,7 +333,7 @@
       renderDots(d.recent); renderHelpers(d.helpers); renderExceptions(d.exceptions);
       st.cursor = d.cursor; $("status").textContent = "";
     } catch (err) {
-      $("status").textContent = `Sin conexión con el app: ${err.message}`;
+      $("status").textContent = err.status === 503 ? err.message : `Sin conexión con el app: ${err.message}`;
     } finally { st.busy = false; }
   }
   $("run").addEventListener("change", () => {

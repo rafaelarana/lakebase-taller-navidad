@@ -10,6 +10,7 @@
 # MAGIC | 2 | Proyecto Lakebase Autoscaling + 4 *synced tables* (Delta → Postgres) | Lakebase |
 # MAGIC | 3 | App de Databricks (FastAPI + React) conectada a Postgres y al AI Gateway, con la página **Incidencias** | Databricks Apps |
 # MAGIC | 4 | Red de carreteras (OpenStreetMap) de Madrid, Valencia y Barcelona + escenarios Filomena, DANA y cortes de calle | Lakebase (PostGIS + pgRouting) |
+# MAGIC | 5 | Centro de control: esquema `navidad_live` + job `navidad-live-<slug>` de los botones ▶ / ■ | Lakebase + Jobs |
 # MAGIC
 # MAGIC **Requisitos:** un workspace con Lakebase y Databricks Apps, cómputo serverless y permiso para crear un esquema en un catálogo.
 # MAGIC
@@ -141,6 +142,26 @@ if with_incidents:
 
 # COMMAND ----------
 
+# MAGIC %md ## 5 · Centro de control: tablas `navidad_live` y job ▶ / ■
+# MAGIC Deja `/control` listo («No hay ejecuciones») y crea el job `navidad-live-<slug>` (04 + 05) que lanzan los botones ▶ / ■ del app.
+# MAGIC La identidad de Zerobus y la tabla bronze las prepara `04_tiempo_real_stream` al arrancar.
+
+# COMMAND ----------
+
+if with_incidents:  # the control center ships with the workshop app template
+    from pg import Pg
+    from provision_live import ensure_live_job, provision_live
+
+    t0 = time.time()
+    app_sp = w.apps.get(name=app_name).service_principal_client_id
+    db = Pg(w, me, f"projects/{project_id}/branches/production")
+    provision_live(conn=db.conn, schema=schema, app_sp=app_sp)
+    ensure_live_job(w, project_id=project_id, notebook_dir=str(Path("/Workspace" + nb_path).parent), catalog=catalog,
+                    suffix=suffix, app_sp=app_sp)
+    timings["5_control"] = round(time.time() - t0)
+
+# COMMAND ----------
+
 # MAGIC %md ## Listo
 
 # COMMAND ----------
@@ -150,6 +171,6 @@ print("Tiempos (s):", timings, "· total", total)
 displayHTML(f"""
 <h3>Taller de Navidad listo en {total // 60} min {total % 60} s</h3>
 <p>Mapa de rutas: <a href="{app_url}" target="_blank">{app_url}</a></p>
-<p>Incidencias: <a href="{app_url}/incidencias" target="_blank">{app_url}/incidencias</a></p>
+<p>Planificador: <a href="{app_url}/planner" target="_blank">{app_url}/planner</a> · Centro de control: <a href="{app_url}/control" target="_blank">{app_url}/control</a></p>
 <p>Lakebase: proyecto <code>{project_id}</code> · esquema <code>{schema}</code></p>
 """)

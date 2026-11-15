@@ -309,3 +309,27 @@ def test_left_rail_replaces_header_links_and_is_idempotent(tmp_path):
     assert 'href="/' not in header and "links" not in header
     assert "openstreetmap.org/copyright" in out   # other links untouched
     assert (tmp_path / "static" / "nav.js").exists() and (tmp_path / "static" / "nav.css").exists()
+
+
+def test_state_says_not_prepared_when_navidad_live_is_missing(monkeypatch, tmp_path):
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    class UndefinedTable(Exception):
+        pgcode = "42P01"
+
+    def missing(*a, **k):
+        raise UndefinedTable('relation "navidad_live.sim_run" does not exist')
+
+    monkeypatch.setattr(control, "state", missing)
+    app = FastAPI()
+    control.mount_control(app, tmp_path, client=object())
+    r = TestClient(app).get("/api/control/state")
+    assert r.status_code == 503 and "00_workbench" in r.json()["detail"]
+    assert control._not_prepared(Exception('schema "navidad_live" does not exist'))
+    assert not control._not_prepared(Exception("connection refused"))
+
+
+def test_workbench_prepares_the_control_center():
+    nb = (Path(__file__).resolve().parents[2] / "workshop" / "notebooks" / "00_workbench.py").read_text()
+    assert "provision_live(conn=db.conn, schema=schema, app_sp=app_sp)" in nb and "ensure_live_job(" in nb

@@ -29,7 +29,7 @@ Construye desde cero, **solo con un workspace**, el «Taller de Navidad»: Papá
 
 | Notebook | Qué hace |
 |---|---|
-| `00_workbench` | Datos → Lakebase (synced tables) → app (con Incidencias) → red de carreteras y escenarios |
+| `00_workbench` | Datos → Lakebase (synced tables) → app (con Incidencias) → red de carreteras y escenarios → centro de control listo (`navidad_live` + job ▶ / ■) |
 | `01_rama_whatif` | Branching paso a paso sin app: crea una rama, simula, compara con producción y la borra |
 | `02_instalar_skills` | Copia las skills a Genie Code (`.assistant/skills`) para el desarrollo agéntico |
 | `03_grinch` | **Opcional.** El Grinch borra el 80 % de las cartas a los Reyes: snapshot, rama desde el momento seguro (PITR) y recuperación sin parar el app; restauración completa opcional (~1 min) |

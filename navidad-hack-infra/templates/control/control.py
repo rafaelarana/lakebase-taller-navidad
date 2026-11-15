@@ -602,6 +602,16 @@ class LiveJob:
         return {"cancelled": [r.run_id for r in runs]}
 
 
+NOT_PREPARED = ("El centro de control aún no está preparado en este workbench: ejecuta el paso 5 de 00_workbench "
+                "(o 04_tiempo_real_stream una vez) y recarga.")
+
+
+def _not_prepared(exc: BaseException) -> bool:
+    """navidad_live (tables/views) missing: Postgres 42P01 undefined_table / 3F000 invalid_schema_name."""
+    return getattr(exc, "pgcode", None) in ("42P01", "3F000") or 'relation "navidad_live.' in str(exc) \
+        or 'schema "navidad_live"' in str(exc)
+
+
 def mount_control(app: FastAPI, static_dir: Path, complete: Callable[[str], str] | None = None,
                   client: WorkspaceClient | None = None) -> Db:
     """``complete(prompt) -> text``: the app's gateway helper, wired by add_control_center with the agent
@@ -616,11 +626,15 @@ def mount_control(app: FastAPI, static_dir: Path, complete: Callable[[str], str]
     def guard(fn, *a):
         try:
             return fn(*a)
+        except HTTPException:
+            raise
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=f"no existe: {exc}") from exc
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         except Exception as exc:
+            if _not_prepared(exc):  # 00 step 5 / 04 not run yet in this workbench
+                raise HTTPException(status_code=503, detail=NOT_PREPARED) from exc
             raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     @app.get("/control")
