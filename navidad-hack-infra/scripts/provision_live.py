@@ -80,6 +80,8 @@ def app_grants(app_sp: str) -> list[str]:
     out = [f"GRANT USAGE ON SCHEMA navidad_live TO {sp}"]
     out += [f"GRANT SELECT ON navidad_live.{t} TO {sp}" for t in APP_READ]
     out += [f"GRANT SELECT, INSERT, UPDATE ON navidad_live.{t} TO {sp}" for t in APP_WRITE]
+    # ■ Parar closes the night itself (the producer may be killed before its finally: block)
+    out.append(f"GRANT UPDATE (status, ended_at) ON navidad_live.sim_run TO {sp}")
     out.append(f"GRANT USAGE ON ALL SEQUENCES IN SCHEMA navidad_live TO {sp}")
     return out
 

@@ -125,3 +125,15 @@ def test_burst_hits_a_zone_visited_only_at_the_start_and_end_of_the_night():
     burst = [e for e in ev if e.event_type == "excepcion" and e.stop in hit]
     assert len(burst) / len(hit) > 0.08                                   # the hot spot is visible
     assert burst_window(stops, set()) is None
+
+
+def test_every_table_the_app_writes_is_granted():
+    # «permission denied for table sim_run» on ■ Parar: control.py updated a table the SP could only read.
+    import re
+    from pathlib import Path
+    src = (Path(__file__).resolve().parents[1] / "templates" / "control" / "control.py").read_text()
+    writes = set(re.findall(r"(?:UPDATE|INSERT INTO)\s+navidad_live\.(\w+)", src))
+    g = " ".join(app_grants("sp"))
+    for t in writes:
+        assert re.search(rf"GRANT [^;]*(UPDATE|INSERT)[^;]* ON navidad_live\.{t} TO", g), t
+    assert 'GRANT UPDATE (status, ended_at) ON navidad_live.sim_run TO "sp"' in g
