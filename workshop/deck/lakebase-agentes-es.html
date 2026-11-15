@@ -1169,7 +1169,7 @@ sin escenario (sin rama):  carga = (1 − 0,62 + 0,62 ÷ impulso)
       <div class="diagram">
         <svg viewBox="0 0 760 340" role="img" aria-label="Agente sobre Lakebase">
           <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5a7480"/></marker></defs>
-          <g class="node" data-step="1"><rect x="20" y="120" width="180" height="100" rx="14"/><text x="110" y="160" text-anchor="middle">Petición</text><text class="sub" x="110" y="182" text-anchor="middle">«añade un KPI de</text><text class="sub" x="110" y="198" text-anchor="middle">hogares con niños por Rey»</text></g>
+          <g class="node" data-step="1"><rect x="20" y="120" width="180" height="100" rx="14"/><text x="110" y="160" text-anchor="middle">Petición</text><text class="sub" x="110" y="182" text-anchor="middle">«añade un KPI de</text><text class="sub" x="110" y="198" text-anchor="middle">niños con carbón por Rey»</text></g>
           <g class="node" data-step="2"><rect x="260" y="40" width="220" height="90" rx="14"/><text x="370" y="75" text-anchor="middle">Genie Code + skill</text><text class="sub" x="370" y="97" text-anchor="middle">SKILL.md · diccionario · playbooks</text></g>
           <path class="edge" data-step="2" d="M200 160 C 230 160, 230 85, 258 85"/>
           <g class="node" data-step="3"><rect x="260" y="200" width="220" height="90" rx="14"/><text x="370" y="235" text-anchor="middle">Lakebase</text><text class="sub" x="370" y="257" text-anchor="middle">SQL · tablas nuevas · rama sandbox</text></g>
@@ -1211,7 +1211,7 @@ sin escenario (sin rama):  carga = (1 − 0,62 + 0,62 ÷ impulso)
     <div class="demo">
       <div class="dstep"><input type="checkbox" /><div><b>Ejecuta <code>02_instalar_skills</code></b>.<div class="ok"><code>instalada: …/.assistant/skills/navidad-hack-build-assistant</code></div></div></div>
       <div class="dstep"><input type="checkbox" /><div><b>Genie Code</b> → «Ayúdame a construir sobre el Taller de Navidad».<div class="ok">resumen de los datos (campañas, noches, ciudades) y «Suggested tracks include:»</div></div></div>
-      <div class="dstep"><input type="checkbox" /><div><b>Petición</b>: <pre><button class="copy">copiar</button>Añade al app un KPI de hogares con niños por Rey en la noche de Reyes de Valencia</pre><div class="ok">el agente consulta <code>people_sync</code> + <code>journeys_sync</code>, propone una vista, añade un endpoint y redespliega</div><div class="planb">reproducir la grabación (plan-b/d4)</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Petición</b>: <pre style="white-space:pre-wrap;padding-right:72px"><button class="copy">copiar</button>Añade al app un KPI de niños con carbón por Rey en la noche de Reyes de Valencia (carbón = naughty_nice_score &lt; 15). Guarda el resultado en una tabla nueva de Lakebase y que el app la lea de ahí.</pre><div class="ok">el agente cruza <code>people_sync</code> + <code>preferences_sync</code> + <code>journeys_sync</code>, <b>crea la tabla</b> (con GRANT SELECT al SP del app), añade un endpoint y redespliega · a escala 1,0: 3.562 de 24.092 niños con carbón (Melchor 1.226 · Gaspar 1.231 · Baltasar 1.105)</div><div class="planb">reproducir la grabación (plan-b/d4)</div></div></div>
     </div>
   </div>
     <div class="pane">
@@ -1226,7 +1226,7 @@ sin escenario (sin rama):  carga = (1 − 0,62 + 0,62 ÷ impulso)
           <!-- lanes -->
           <text class="lane-lbl" x="18" y="52">production</text>
           <path class="lane prod" d="M20 70 H740"/>
-          <text class="lane-lbl dev" x="200" y="200">rama dev-kpi-ninos-edad-1114-0837</text>
+          <text class="lane-lbl dev" x="200" y="200">rama dev-kpi-carbon-rey-1114-0837</text>
           <path class="lane dev" d="M200 250 H520"/>
           <!-- 1 request -->
           <path class="edge" data-step="2" d="M170 337 C 186 337, 186 262, 198 258"/>
@@ -1240,7 +1240,7 @@ sin escenario (sin rama):  carga = (1 − 0,62 + 0,62 ÷ impulso)
           <!-- 4 tests -->
           <path class="edge" data-step="4" d="M500 250 H528"/>
           <g class="node" data-step="4"><rect x="530" y="200" width="210" height="100" rx="14"/><text x="635" y="224" text-anchor="middle">Pruebas en la rama</text>
-            <text class="sub chk" x="545" y="244">✓ objetos · *_sync intactas</text><text class="sub chk" x="545" y="260">✓ 24.092 niños = conteo directo</text>
+            <text class="sub chk" x="545" y="244">✓ objetos · *_sync intactas</text><text class="sub chk" x="545" y="260">✓ 3.562 con carbón = conteo directo</text>
             <text class="sub chk" x="545" y="276">✓ endpoint 0,36 s · GRANT al SP</text><text class="sub chk" x="545" y="292">✓ re-ejecución sin cambios</text></g>
           <!-- 5 approval -->
           <path class="edge" data-step="5" d="M635 200 V178"/>
