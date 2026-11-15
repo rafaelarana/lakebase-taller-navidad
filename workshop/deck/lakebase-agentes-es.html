@@ -1515,27 +1515,33 @@ LIMIT 24;</pre>
 <section class="block" id="glos" data-time="referencia">
   <div class="kicker">Glosario</div>
   <h2>Términos del workshop</h2>
+  <p class="lead" style="margin:4px 0 0">En orden alfabético; cada término enlaza a la documentación de Databricks.</p>
   <table class="t" style="margin-top:12px">
     <tr><th>Término</th><th>Definición</th></tr>
-    <tr><td>Proyecto</td><td>Contenedor de Lakebase Autoscaling: ramas, cómputos, bases y roles. Al crearlo nacen la rama <code>production</code> y su cómputo <code>primary</code></td></tr>
-    <tr><td>Rama (branch)</td><td>Entorno de base de datos aislado que comparte el almacenamiento con su padre (copy-on-write). Con TTL o permanente</td></tr>
-    <tr><td>Cómputo / endpoint</td><td>Postgres que sirve una rama: lectura-escritura o solo lectura (réplica). Escala en CU</td></tr>
-    <tr><td>CU</td><td>Compute Unit ≈ 2 GB de RAM. Autoscaling 0,5–64 CU</td></tr>
-    <tr><td>Scale-to-zero</td><td>El cómputo se suspende sin uso y reanuda en cientos de ms</td></tr>
-    <tr><td>Synced table</td><td>Tabla Delta de UC replicada en Postgres (snapshot, triggered o continuous). Solo lectura en Postgres</td></tr>
-    <tr><td>CDF (Lakebase)</td><td>Cambios de Postgres de vuelta a Delta (Public Preview)</td></tr>
-    <tr><td>Lakebase Search</td><td>Búsqueda vectorial (<code>lakebase_ann</code>), BM25 (<code>lakebase_bm25</code>) e híbrida dentro de Postgres</td></tr>
-    <tr><td>PostGIS</td><td>Extensión geoespacial: geometrías, distancias, KNN, buffers</td></tr>
-    <tr><td>pgRouting</td><td>Extensión de rutas sobre grafos: Dijkstra, matrices de coste, TSP, componentes</td></tr>
-    <tr><td>Service principal (SP) del app</td><td>Identidad con la que el app accede a Lakebase y al AI Gateway, con tokens OAuth</td></tr>
-    <tr><td>AI Gateway</td><td>Punto único para invocar modelos, con gobierno y trazabilidad</td></tr>
-    <tr><td>Git folder</td><td>Carpeta del workspace enlazada a un repositorio Git</td></tr>
-    <tr><td>DAB</td><td>Declarative Automation Bundle: infraestructura y jobs como código (<code>databricks.yml</code>)</td></tr>
-    <tr><td>Genie Code / skill</td><td>Asistente agéntico del workspace; una skill es un paquete de instrucciones y scripts que le enseña una tarea</td></tr>
-    <tr><td>PITR</td><td>Point-in-time restore: recuperar el estado de una rama en un instante dentro de la ventana de restauración (2–30 días)</td></tr>
-    <tr><td>Snapshot</td><td>Copia inmutable de una rama raíz en un instante; se restaura creando una rama nueva. Manual o programado</td></tr>
-    <tr><td>Rama raíz</td><td>Rama sin padre (como <code>production</code> o una restauración). Máximo 3 por proyecto</td></tr>
-    <tr><td>Copy-on-write</td><td>La rama solo guarda lo que cambia respecto a su padre; crearla no copia datos</td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/ai-gateway/" target="_blank" rel="noopener">AI Gateway</a></td><td>Punto único para invocar modelos, con gobierno, límites y trazabilidad</td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/oltp/projects/lakebase-cdf" target="_blank" rel="noopener">CDF de Lakebase (Change Data Feed)</a></td><td>Cambios de Postgres de vuelta a tablas Delta en Unity Catalog (Public Preview)</td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/oltp/projects/manage-computes" target="_blank" rel="noopener">Cómputo / endpoint</a></td><td>Postgres que sirve una rama: lectura-escritura (<code>primary</code>) o solo lectura (réplica). Escala en CU</td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/oltp/projects/branches" target="_blank" rel="noopener">Copy-on-write</a></td><td>La rama solo guarda lo que cambia respecto a su padre; crearla no copia datos</td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/oltp/projects/manage-computes" target="_blank" rel="noopener">CU</a></td><td>Compute Unit ≈ 2 GB de RAM. Autoscaling de 0,5 a 64 CU; tamaños fijos hasta 112 CU</td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/dev-tools/bundles/" target="_blank" rel="noopener">DAB</a></td><td>Declarative Automation Bundle: infraestructura y jobs como código (<code>databricks.yml</code>)</td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/dev-tools/databricks-apps/" target="_blank" rel="noopener">Databricks Apps</a></td><td>Aplicaciones web desplegadas en el workspace, con su propio service principal; aquí, el app del Taller</td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/genie-code/skills" target="_blank" rel="noopener">Genie Code / skill</a></td><td>Asistente agéntico del workspace; una skill es un paquete de instrucciones y scripts que le enseña una tarea</td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/repos/" target="_blank" rel="noopener">Git folder</a></td><td>Carpeta del workspace enlazada a un repositorio Git</td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/oltp/projects/lakebase-search" target="_blank" rel="noopener">Lakebase Search</a></td><td>Búsqueda vectorial (<code>lakebase_ann</code>), BM25 (<code>lakebase_bm25</code>) e híbrida dentro de Postgres. Se activa por proyecto</td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/structured-streaming/lakebase" target="_blank" rel="noopener">Lakebase sink</a></td><td>Escritura de Spark Structured Streaming en Lakebase: <code>format("postgresql")</code> + <code>upsertkey</code></td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/oltp/projects/extensions" target="_blank" rel="noopener">pgRouting</a></td><td>Extensión de rutas sobre grafos: Dijkstra, matrices de coste, TSP, componentes</td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/oltp/projects/point-in-time-restore" target="_blank" rel="noopener">PITR</a></td><td>Point-in-time restore: recuperar el estado de una rama en un instante dentro de la ventana de restauración (2–30 días, 7 por defecto)</td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/oltp/projects/extensions" target="_blank" rel="noopener">PostGIS</a></td><td>Extensión geoespacial: geometrías, distancias, KNN, buffers</td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/oltp/projects/manage-projects" target="_blank" rel="noopener">Proyecto</a></td><td>Contenedor de Lakebase Autoscaling: ramas, cómputos, bases y roles. Al crearlo nacen la rama <code>production</code> y su cómputo <code>primary</code></td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/oltp/projects/branches" target="_blank" rel="noopener">Rama (branch)</a></td><td>Entorno de base de datos aislado que comparte el almacenamiento con su padre (copy-on-write). Con TTL o permanente</td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/oltp/projects/manage-branches" target="_blank" rel="noopener">Rama raíz</a></td><td>Rama sin padre (como <code>production</code> o una restauración). Máximo 3 por proyecto</td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/oltp/projects/read-replicas" target="_blank" rel="noopener">Réplica de lectura</a></td><td>Cómputo de solo lectura sobre el mismo almacenamiento de la rama: separa lecturas sin copiar datos</td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/oltp/projects/scale-to-zero" target="_blank" rel="noopener">Scale-to-zero</a></td><td>El cómputo se suspende sin uso y se reactiva en unos cientos de ms con la siguiente consulta</td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/admin/users-groups/service-principals" target="_blank" rel="noopener">Service principal (SP) del app</a></td><td>Identidad con la que el app accede a Lakebase y al AI Gateway, con tokens OAuth</td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/oltp/projects/snapshots" target="_blank" rel="noopener">Snapshot</a></td><td>Copia inmutable de una rama raíz en un instante; se restaura creando una rama nueva. Manual o programado</td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/oltp/projects/sync-tables" target="_blank" rel="noopener">Synced table</a></td><td>Tabla Delta de UC copiada en Postgres (snapshot, triggered o continuous; el Taller usa snapshot). Solo lectura en Postgres</td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/data-governance/unity-catalog/" target="_blank" rel="noopener">Unity Catalog</a></td><td>Gobierno unificado de datos e IA: catálogos, esquemas, permisos y linaje</td></tr>
+    <tr><td><a href="https://docs.databricks.com/aws/en/ingestion/zerobus-overview" target="_blank" rel="noopener">Zerobus</a></td><td>Ingesta directa de eventos en tablas Delta por gRPC, sin bus de mensajes</td></tr>
   </table>
 </section>
 
