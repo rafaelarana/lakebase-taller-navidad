@@ -299,8 +299,8 @@ def _run_state(db: Db, run: str | None) -> dict[str, Any]:
                  "clock": _iso(k["clock"]), "last_update": _iso(k["last_update"]),
                  "exceptions": k["total"], "exceptions_open": k["open"], "resolved_agent": k["by_agent"],
                  "resolved_retry": k["by_retry"],
-                 "latency_p50": round(float(k["p50"]), 1) if k["p50"] is not None else None,
-                 "latency_p95": round(float(k["p95"]), 1) if k["p95"] is not None else None,
+                 "latency_p50": round(float(k["p50"]), 3) if k["p50"] is not None else None,
+                 "latency_p95": round(float(k["p95"]), 3) if k["p95"] is not None else None,
                  "stream_cycle_s": float(k["cycle"]) if k["cycle"] is not None else None},
         "cities": _clean(cities), "helpers": _clean(helpers), "exceptions": _clean(opened),
     }
@@ -336,8 +336,8 @@ def metrics(db: Db, run: str, bucket: int) -> dict[str, Any]:
         SELECT t, COALESCE(d.delivered, 0) AS delivered, COALESCE(x.exceptions, 0) AS exceptions, d.p50, d.p95
         FROM d FULL JOIN x USING (t) ORDER BY t""", p)
     out = {"bucket": bucket, "series": [{"t": _iso(r["t"]), "delivered": r["delivered"], "exceptions": r["exceptions"],
-                                         "p50": round(float(r["p50"]), 1) if r["p50"] is not None else None,
-                                         "p95": round(float(r["p95"]), 1) if r["p95"] is not None else None}
+                                         "p50": round(float(r["p50"]), 3) if r["p50"] is not None else None,
+                                         "p95": round(float(r["p95"]), 3) if r["p95"] is not None else None}
                                         for r in rows]}
     with _CACHE_LOCK:
         _CACHE[key] = (time.time(), out)
