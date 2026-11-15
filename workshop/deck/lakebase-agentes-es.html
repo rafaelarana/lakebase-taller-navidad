@@ -1,0 +1,2264 @@
+<!DOCTYPE html>
+<html lang="es" data-navidad-fx="off">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Taller de Navidad · Lakebase para aplicaciones agénticas</title>
+<style>
+  :root { --navy:#1B3139; --ink:#0E1A21; --ink-2:#13232B; --line:#24363F; --lava:#FF3621; --lava-soft:#FF6B4A;
+          --amber:#FFB300; --teal:#00A1B0; --green:#2DBE60; --paper:#F9F7F4; --white:#fff; --muted:#98A4AA; --muted-2:#C5CCD0; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html,body { background:var(--ink); color:var(--white); font-family:Inter,-apple-system,"Segoe UI",sans-serif; font-size:16px; line-height:1.5; -webkit-font-smoothing:antialiased; }
+  h1,h2,h3 { font-family:"DM Sans",Inter,sans-serif; letter-spacing:-.02em; }
+  a { color:var(--lava-soft); }
+  code,pre { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.86em; }
+  code { background:#1d2f38; padding:1px 6px; border-radius:4px; color:#ffd9d2; }
+  pre { background:#0b151b; border:1px solid var(--line); border-radius:10px; padding:12px 14px; overflow:auto; color:#d8e2e6; position:relative; }
+  pre button.copy { position:absolute; top:6px; right:6px; background:#1d2f38; color:var(--muted-2); border:1px solid var(--line); border-radius:6px; font-size:11px; padding:2px 8px; cursor:pointer; }
+
+  .topnav { position:sticky; top:0; z-index:50; height:56px; display:flex; align-items:center; gap:6px; padding:0 22px; background:#0b151b; border-bottom:1px solid var(--line); }
+  .brand { display:flex; align-items:center; gap:10px; font-size:12px; font-weight:700; letter-spacing:.18em; margin-right:20px; white-space:nowrap; }
+  .brand::before { content:""; width:12px; height:12px; border-radius:3px; background:var(--lava); }
+  .navbtn { background:none; border:0; color:var(--muted-2); font:500 14px Inter,sans-serif; padding:8px 12px; border-radius:8px; cursor:pointer; white-space:nowrap; }
+  .navbtn:hover { color:#fff; } .navbtn.active { background:var(--lava); color:#fff; }
+  .spacer { flex:1; } .clock { font-size:12px; letter-spacing:.14em; color:var(--muted); white-space:nowrap; }
+
+  section.block { display:none; min-height:calc(100vh - 56px); padding:34px 70px 70px; border-left:8px solid var(--lava);
+    background:radial-gradient(circle at 92% 95%,rgba(255,54,33,.16),transparent 28%),
+      linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px) 0 0/56px 56px,
+      linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px) 0 0/56px 56px,var(--ink); }
+  section.block.active { display:block; animation:fade .35s ease; }
+  @keyframes fade { from{opacity:0} to{opacity:1} }
+  .kicker { display:inline-flex; gap:10px; align-items:center; padding:6px 16px; border-radius:999px; border:1px solid #5a2a22; background:#1e1a1b;
+    color:var(--lava-soft); font:700 13px "DM Sans", Inter, -apple-system, "Segoe UI", sans-serif; letter-spacing:.24em; text-transform:uppercase; margin-bottom:14px; }
+  h1 { font-size:46px; line-height:1.08; margin-bottom:10px; } h1 em { color:var(--lava); font-style:normal; }
+  h2 { font-size:30px; margin-bottom:8px; } h3 { font-size:18px; margin:14px 0 6px; color:var(--muted-2); }
+  .lead { color:var(--muted-2); font-size:18px; max-width:980px; margin-bottom:18px; }
+
+  .subtabs { display:flex; gap:6px; margin:6px 0 18px; border-bottom:1px solid var(--line); }
+  .subtab { background:none; border:0; border-bottom:3px solid transparent; color:var(--muted-2); font:600 15px Inter, Inter, -apple-system, "Segoe UI", sans-serif; padding:10px 14px; cursor:pointer; }
+  .subtab.active { color:#fff; border-color:var(--lava); }
+  .subtab small { color:var(--muted); font-weight:500; margin-left:6px; }
+  .pane { display:none; } .pane.active { display:block; animation:fade .3s ease; }
+
+  .grid2 { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:28px; align-items:start; }
+  .grid3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+  .card { background:var(--ink-2); border:1px solid var(--line); border-radius:14px; padding:16px 18px; }
+  .card b { color:#fff; } .card p, .card li { color:var(--muted-2); font-size:15px; }
+  .card.hl { border-color:var(--lava); box-shadow:0 0 0 1px rgba(255,54,33,.35); }
+  .pill { display:inline-block; font-size:12px; font-weight:700; letter-spacing:.08em; padding:2px 9px; border-radius:999px; background:#2a1714; color:var(--lava-soft); margin-right:6px; }
+  .pill.teal { background:#0d2b30; color:#5fd6df; } .pill.green { background:#10291a; color:#62e08f; } .pill.amber { background:#2d2410; color:#ffcf5a; }
+
+  /* step diagrams */
+  .diagram { background:#0b151b; border:1px solid var(--line); border-radius:16px; padding:14px; }
+  .diagram svg { width:100%; height:auto; display:block; }
+  .diagram .node rect, .diagram .node circle, .diagram .node path.shape { fill:#13232B; stroke:#2c4652; stroke-width:1.5; transition:all .35s; }
+  .diagram .node text { fill:var(--muted-2); font:600 14px Inter, Inter, -apple-system, "Segoe UI", sans-serif; transition:fill .35s; }
+  .diagram .node text.sub { font:500 11.5px Inter, Inter, -apple-system, "Segoe UI", sans-serif; fill:var(--muted); }
+  .diagram .edge { stroke:#2c4652; stroke-width:2; fill:none; transition:stroke .35s; marker-end:url(#arrow); }
+  .diagram [data-step].on rect, .diagram [data-step].on circle, .diagram [data-step].on path.shape { fill:#2a1714; stroke:var(--lava); }
+  .diagram [data-step].on text { fill:#fff; } .diagram path.edge[data-step].on { stroke:var(--lava); }
+  .diagram [data-step].done rect, .diagram [data-step].done circle, .diagram [data-step].done path.shape { stroke:#7a3a30; }
+  .steps { list-style:none; counter-reset:s; display:grid; gap:8px; }
+  .flow-bar { display:flex; align-items:center; gap:12px; margin-bottom:8px; font-size:12.5px; color:var(--muted); }
+  .flow-play { background:var(--lava); color:#fff; border:0; border-radius:999px; padding:6px 14px; font:700 13px Inter, -apple-system, "Segoe UI", sans-serif; cursor:pointer; }
+  .flow-play.playing { background:#2c4652; }
+  .diagram.flow .lane { stroke:#2c4652; stroke-width:6; stroke-linecap:round; fill:none; }
+  .diagram.flow .lane.prod { stroke:#1f6f5c; }
+  .diagram.flow .lanebox { fill:none; stroke:var(--lava-soft); stroke-width:1.5; stroke-dasharray:6 5; opacity:.7; }
+  .diagram.flow g.side rect { stroke-dasharray:5 4; }
+  .diagram.flow .lane-lbl { font:700 12px Inter, -apple-system, "Segoe UI", sans-serif; fill:#3fb68b; letter-spacing:.06em; }
+  .diagram.flow .lane-lbl.dev { fill:var(--lava-soft); }
+  .diagram.flow .edge[data-step].on { stroke-dasharray:8 6; animation:flowdash .8s linear infinite; }
+  .diagram.flow .edge.merge.on, .diagram.flow .edge.fork.on { stroke-width:3; }
+  .diagram.flow .edge-lbl { font:500 11.5px Inter, -apple-system, "Segoe UI", sans-serif; fill:var(--muted-2); opacity:0; transition:opacity .35s; fill:var(--muted-2); }
+  .diagram.flow .edge-lbl.on, .diagram.flow .edge-lbl.done { opacity:1; }
+  .diagram.flow .chk { opacity:.35; transition:opacity .35s; }
+  .diagram.flow rect.cu { fill:#20343d; stroke:none; transition:fill .35s; }
+  .diagram.flow rect.cu.on, .diagram.flow rect.cu.done { fill:#3fb68b; }
+  html[data-theme="light"] .diagram.flow rect.cu { fill:#dde3e6; }
+  html[data-theme="light"] .diagram.flow rect.cu.on, html[data-theme="light"] .diagram.flow rect.cu.done { fill:#3fb68b; }
+  .diagram.flow [data-step="4"].on .chk, .diagram.flow [data-step="4"].done .chk { opacity:1; fill:#3fb68b; }
+  .diagram.flow g.res.on .chk, .diagram.flow g.res.done .chk { opacity:1; fill:#3fb68b; }
+  .diagram.flow .token { fill:var(--lava); opacity:0; transition:cx .9s ease, cy .9s ease, opacity .3s; filter:drop-shadow(0 0 6px rgba(255,54,33,.8)); }
+  .diagram.flow .token.on { opacity:1; }
+  @keyframes flowdash { to { stroke-dashoffset:-28; } }
+  html[data-theme="light"] .diagram.flow .lane { stroke:#C9D1D6; } html[data-theme="light"] .diagram.flow .lane.prod { stroke:#7cc8ad; }
+  html[data-theme="light"] .diagram.flow .edge-lbl { fill:#5B6670; }
+  @media (prefers-reduced-motion: reduce) { .diagram.flow .edge[data-step].on { animation:none; } .diagram.flow .token { transition:none; } }
+  .steps li { counter-increment:s; padding:10px 12px 10px 46px; border-radius:12px; border:1px solid var(--line); background:var(--ink-2); position:relative; color:var(--muted-2); cursor:pointer; transition:all .3s; }
+  .steps li::before { content:counter(s); position:absolute; left:12px; top:10px; width:24px; height:24px; border-radius:50%; background:#1d2f38; color:var(--muted-2); font:700 13px Inter, Inter, -apple-system, "Segoe UI", sans-serif; display:grid; place-items:center; }
+  .steps li b { color:#fff; display:block; } .steps li.on { border-color:var(--lava); background:#1e1a1b; }
+  .steps li.on::before { background:var(--lava); color:#fff; } .steps li.done { opacity:.7; }
+  .steps.compact { gap:6px; } .steps.compact li { padding:6px 12px 6px 44px; font-size:14px; line-height:1.35; } .steps.compact li::before { top:7px; width:22px; height:22px; font-size:12px; } .steps.compact li b small { font-weight:500; color:var(--muted); margin-left:4px; }
+  .hint { color:var(--muted); font-size:13px; margin-top:10px; }
+
+  table.t { width:100%; border-collapse:collapse; font-size:14.5px; }
+  table.t th, table.t td { text-align:left; padding:7px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  table.t th { color:var(--muted); font-weight:600; font-size:12.5px; letter-spacing:.06em; text-transform:uppercase; }
+  table.t td:first-child { color:#fff; font-weight:600; white-space:nowrap; }
+  table.t td { color:var(--muted-2); }
+  table.t.wrap td:first-child { white-space:normal; }
+
+  /* demo checklist */
+  .demo { display:grid; gap:10px; counter-reset:d; }
+  .dstep { display:grid; grid-template-columns:30px minmax(0,1fr); gap:12px; padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:var(--ink-2); }
+  .dstep input { width:20px; height:20px; accent-color:var(--lava); margin-top:3px; }
+  .dstep.checked { opacity:.55; } .dstep b { color:#fff; }
+  .dstep .ok { color:#62e08f; font-size:14px; margin-top:4px; } .dstep .ok::before { content:"✓ Deberías ver: "; font-weight:700; }
+  .dstep .planb { color:#ffcf5a; font-size:13.5px; margin-top:4px; } .dstep .planb::before { content:"Plan B: "; font-weight:700; }
+  .who { font-size:12px; font-weight:700; letter-spacing:.08em; color:var(--muted); margin-left:6px; }
+
+  /* notes overlay */
+  #notes { position:fixed; right:18px; bottom:18px; width:min(560px,46vw); max-height:60vh; overflow:auto; background:#fffdf8; color:#1d252b;
+    border-radius:14px; padding:16px 18px; box-shadow:0 18px 50px rgba(0,0,0,.45); display:none; z-index:80; font-size:15px; }
+  #notes.on { display:block; } #notes h4 { font-size:12px; letter-spacing:.18em; color:#b93815; margin-bottom:6px; }
+  #notes li { margin-left:18px; margin-bottom:4px; }
+  .keys { position:fixed; left:14px; bottom:10px; color:#566a72; font-size:12px; z-index:60; }
+  .note-src { display:none; }
+  @media print { .topnav, .keys, #notes { display:none } section.block { display:block !important; page-break-after:always } .pane { display:block !important } }
+
+  /* ---------- light theme (white background) ---------- */
+  .themebtn { background:none; border:1px solid var(--line); color:var(--muted-2); font:600 13px Inter, -apple-system, "Segoe UI", sans-serif;
+    padding:6px 12px; border-radius:999px; cursor:pointer; margin-right:14px; white-space:nowrap; }
+  .themebtn:hover { color:#fff; border-color:var(--lava); }
+  html[data-theme="light"] { --ink:#FFFFFF; --ink-2:#F7F5F2; --line:#E3DED6; --muted:#6B7480; --muted-2:#3E4A52; --white:#0E1A21; }
+  html[data-theme="light"] body { background:#fff; color:#0E1A21; }
+  html[data-theme="light"] .topnav { background:#fff; border-bottom-color:#E3DED6; }
+  html[data-theme="light"] .navbtn { color:#3E4A52; } html[data-theme="light"] .navbtn:hover { color:#0E1A21; }
+  html[data-theme="light"] .navbtn.active { color:#fff; }
+  html[data-theme="light"] .themebtn:hover { color:#0E1A21; }
+  html[data-theme="light"] section.block { background:radial-gradient(circle at 92% 95%,rgba(255,54,33,.08),transparent 28%),
+      linear-gradient(rgba(14,26,33,.04) 1px,transparent 1px) 0 0/56px 56px,
+      linear-gradient(90deg,rgba(14,26,33,.04) 1px,transparent 1px) 0 0/56px 56px,#fff; }
+  html[data-theme="light"] h1, html[data-theme="light"] h2 { color:#0E1A21; }
+  html[data-theme="light"] .kicker { background:#FFF1EE; border-color:#FFC9BE; color:#C52A15; }
+  html[data-theme="light"] .lead { color:#3E4A52; }
+  html[data-theme="light"] a { color:#C52A15; }
+  html[data-theme="light"] code { background:#F1EDE7; color:#9A2512; }
+  html[data-theme="light"] pre { background:#F7F5F2; color:#1d252b; border-color:#E3DED6; }
+  html[data-theme="light"] pre button.copy { background:#fff; color:#3E4A52; border-color:#E3DED6; }
+  html[data-theme="light"] .subtab { color:#5B6670; } html[data-theme="light"] .subtab.active { color:#0E1A21; }
+  html[data-theme="light"] .card { background:#F7F5F2; } html[data-theme="light"] .card b { color:#0E1A21; }
+  html[data-theme="light"] .card p, html[data-theme="light"] .card li { color:#3E4A52; }
+  html[data-theme="light"] .pill { background:#FFE4DE; color:#B93815; }
+  html[data-theme="light"] .pill.teal { background:#DDF4F6; color:#00707B; }
+  html[data-theme="light"] .pill.green { background:#DDF5E5; color:#1B7A3E; }
+  html[data-theme="light"] .diagram { background:#FBFAF8; border-color:#E3DED6; }
+  html[data-theme="light"] .diagram .node rect, html[data-theme="light"] .diagram .node circle, html[data-theme="light"] .diagram .node path.shape { fill:#fff; stroke:#C9D1D6; }
+  html[data-theme="light"] .diagram .node text { fill:#1d252b; }
+  html[data-theme="light"] .diagram .node text.sub, html[data-theme="light"] .diagram svg > text { fill:#5B6670; }
+  html[data-theme="light"] .diagram .edge { stroke:#B8C2C8; }
+  html[data-theme="light"] .diagram [data-step].on rect, html[data-theme="light"] .diagram [data-step].on circle { fill:#FFF1EE; stroke:var(--lava); }
+  html[data-theme="light"] .diagram [data-step].on text { fill:#0E1A21; }
+  html[data-theme="light"] .diagram [data-step].done rect { stroke:#F2A497; }
+  html[data-theme="light"] .steps li { background:#F7F5F2; color:#3E4A52; } html[data-theme="light"] .steps li b { color:#0E1A21; }
+  html[data-theme="light"] .steps li::before { background:#E9E4DD; color:#3E4A52; }
+  html[data-theme="light"] .steps li.on { background:#FFF1EE; }
+  html[data-theme="light"] .steps li.on::before { background:var(--lava); color:#fff; }
+  html[data-theme="light"] table.t td:first-child { color:#0E1A21; } html[data-theme="light"] table.t td { color:#3E4A52; }
+  html[data-theme="light"] .dstep { background:#F7F5F2; } html[data-theme="light"] .dstep b { color:#0E1A21; }
+  html[data-theme="light"] .dstep .ok { color:#1B7A3E; } html[data-theme="light"] .dstep .planb { color:#9A6700; }
+  html[data-theme="light"] .keys { color:#8A949B; }
+  html[data-theme="light"] #notes { background:#0E1A21; color:#E6ECEF; } html[data-theme="light"] #notes h4 { color:#FF6B4A; }
+
+  /* ---------- architecture (Mercabricks PlatformDiagram style) ---------- */
+  .arch { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(300px,.9fr); gap:22px; align-items:start; }
+  .arch.compact { grid-template-columns:minmax(0,1.45fr) minmax(280px,1fr); }
+  .arch-stepper { grid-column:1 / -1; display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .arch-stepper button { border:1px solid var(--line); background:var(--ink-2); color:var(--muted-2); border-radius:999px;
+    padding:6px 13px; font:600 13px Inter, -apple-system, "Segoe UI", sans-serif; cursor:pointer; }
+  .arch-stepper button.on { background:var(--lava); border-color:var(--lava); color:#fff; }
+  .arch-stepper button.done { border-color:#7a3a30; color:var(--white); }
+  .arch-stepper button:disabled { opacity:.35; cursor:default; }
+  .arch-stepper .lbl { color:var(--muted); font-size:12px; letter-spacing:.14em; text-transform:uppercase; margin-right:6px; }
+  .ap-plat { border:1px solid var(--line); border-radius:14px; overflow:hidden; background:var(--ink-2); }
+  .ap-row { display:grid; grid-template-columns:150px 1fr; gap:10px; align-items:center; padding:7px 14px; border-top:1px solid var(--line); }
+  .ap-row:first-child { border-top:none; }
+  .ap-row.tint-o { background:rgba(255,54,33,.06); } .ap-row.tint-n { background:rgba(0,161,176,.05); }
+  .ap-lbl b { display:block; font-size:14.5px; font-weight:800; color:var(--white); letter-spacing:-.01em; }
+  .ap-lbl span { display:block; font-size:11.5px; color:var(--muted); line-height:1.35; margin-top:2px; }
+  .ap-items { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; align-items:center; }
+  .ap-story { display:flex; align-items:center; gap:0; flex-wrap:nowrap; }
+  .ap-prod { position:relative; display:flex; align-items:center; gap:10px; min-width:0; padding:5px 8px; border-radius:10px;
+    border:1px dashed transparent; transition:opacity .45s, filter .45s, border-color .45s, box-shadow .45s; }
+  .ap-prod.future { opacity:.28; filter:grayscale(1); border-color:var(--line); }
+  .ap-prod.new { border:1px solid var(--lava); box-shadow:0 0 0 3px rgba(255,54,33,.18), 0 0 22px rgba(255,54,33,.25); }
+  .ap-prod.new::after { content:"NUEVO"; position:absolute; top:-9px; right:8px; background:var(--lava); color:#fff;
+    font:800 9.5px Inter, sans-serif; letter-spacing:.12em; padding:1px 7px; border-radius:999px; }
+  .ap-tile { width:38px; height:38px; flex:none; background:#fff; border-radius:11px; display:grid; place-items:center;
+    box-shadow:0 2px 10px rgba(0,0,0,.18); }
+  .ap-tile svg { width:27px; height:27px; }
+  .ap-tx { min-width:0; } .ap-tx b { display:block; font-size:13.5px; font-weight:800; color:var(--white); white-space:nowrap; letter-spacing:-.01em; }
+  .ap-tx > span { display:block; font-size:11px; color:var(--muted); line-height:1.25; margin-top:1px; }
+  .ap-chips { display:flex; gap:4px; flex-wrap:nowrap; margin-top:3px; }
+  .ap-chip { display:inline-block; white-space:nowrap; background:#fff; color:#11171C; border-radius:99px; padding:1px 8px;
+    font:800 10px ui-monospace, Menlo, monospace; }
+  .ap-link { position:relative; width:30px; height:2px; flex:none; background:linear-gradient(90deg, rgba(255,54,33,.55), rgba(255,54,33,.15)); margin:0 4px; transition:opacity .45s; }
+  .ap-link.future { opacity:.15; }
+  .ap-link i { position:absolute; top:-2px; left:0; width:6px; height:6px; border-radius:99px; background:var(--lava);
+    box-shadow:0 0 8px rgba(255,54,33,.9); animation:ap-run 1.8s linear infinite; }
+  .ap-link.future i { display:none; }
+  @keyframes ap-run { 0%{ left:0; opacity:0 } 12%{ opacity:1 } 88%{ opacity:1 } 100%{ left:calc(100% - 6px); opacity:0 } }
+  .ap-infra { display:flex; align-items:center; gap:14px; padding:8px 16px; border-top:1px solid var(--line); background:rgba(127,127,127,.06); flex-wrap:wrap; }
+  .ap-infra b { font-size:13px; font-weight:800; color:var(--white); }
+  .ap-infra span { font:600 11px ui-monospace, Menlo, monospace; letter-spacing:.06em; color:var(--muted); }
+  .ap-flows { position:relative; height:40px; display:grid; grid-template-columns:repeat(5,1fr); margin:4px 0 0; }
+  .ap-fl { position:relative; transition:opacity .45s; } .ap-fl.future { opacity:.15; }
+  .ap-fl::before { content:""; position:absolute; left:50%; top:0; bottom:0; width:2px; margin-left:-1px;
+    background:linear-gradient(180deg, rgba(255,54,33,.6), rgba(255,54,33,.1)); }
+  .ap-fl i { position:absolute; left:50%; width:6px; height:6px; margin-left:-3px; border-radius:99px; background:var(--lava);
+    box-shadow:0 0 8px rgba(255,54,33,.9); animation:ap-rise 2.1s linear infinite; }
+  .ap-fl i:nth-child(2) { animation-delay:1.05s; } .ap-fl.future i { display:none; }
+  .ap-fl em { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:2; white-space:nowrap; font-style:normal;
+    background:var(--ink-2); border:1px solid var(--line); border-radius:99px; padding:3px 10px; font:700 11px Inter, sans-serif; color:var(--white); }
+  @keyframes ap-rise { 0%{ top:calc(100% - 4px); opacity:0 } 12%{ opacity:1 } 88%{ opacity:1 } 100%{ top:-4px; opacity:0 } }
+  .ap-sources { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+  .ap-sources .ap-prod { justify-content:center; }
+  .ap-sources .ap-tile { width:36px; height:36px; } .ap-sources .ap-tile svg { width:24px; height:24px; }
+  .ap-sources .ap-tx b { font-size:12.5px; } .ap-sources .ap-tx span { font-size:11px; }
+  .ap-story { min-width:0; } .ap-story .ap-prod { flex:1 1 0; min-width:0; }
+  .ap-story .ap-tx b { white-space:normal; }
+  .arch.compact { grid-template-columns:minmax(0,1.7fr) minmax(260px,.85fr); }
+  .arch.compact .ap-row { grid-template-columns:128px 1fr; }
+  .built { background:var(--ink-2); border:1px solid var(--line); border-radius:14px; padding:16px 18px; }
+  .built .bk { font:700 11.5px Inter, sans-serif; letter-spacing:.16em; text-transform:uppercase; color:var(--lava-soft); }
+  .built h3 { margin:4px 0 6px; font-size:19px; color:var(--white); }
+  .built .meta { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+  .built ul { margin:0 0 10px 18px; } .built li { color:var(--muted-2); font-size:14px; margin-bottom:3px; }
+  .built .where { font-size:13px; color:var(--muted); border-top:1px solid var(--line); padding-top:8px; }
+  .built .where b { color:var(--white); }
+  html[data-theme="light"] .ap-row.tint-o { background:#FFF6F3; } html[data-theme="light"] .ap-row.tint-n { background:#F1F9FA; }
+  html[data-theme="light"] .ap-tile { box-shadow:0 2px 10px rgba(15,23,42,.10); border:1px solid #E3DED6; }
+  html[data-theme="light"] .ap-chip { background:#F1EDE7; }
+  html[data-theme="light"] .ap-fl em { background:#fff; }
+  html[data-theme="light"] .arch-stepper button.done { color:#0E1A21; border-color:#F2A497; }
+
+  /* ---- navidad-fx.css (from the app) ---- */
+/*
+ * Navidad header effects: snowfall, tree + snowman scene, Santa hat on the logo,
+ * Santa's sleigh with reindeer and shooting stars. Purely decorative: every layer
+ * is aria-hidden and pointer-events: none. Driven by navidad-fx.js.
+ * Opt out: <html data-navidad-fx="off">, the header toggle, or prefers-reduced-motion.
+ */
+:root {
+  --color-holiday-snow: #9fb3c2;
+  --color-holiday-red: #c8102e;
+  --color-holiday-fur: #fff;
+  --color-holiday-fur-edge: #8a9ba4;
+  --color-holiday-fur-shade: #d7e1e7;
+  --color-holiday-pine: #2f6f57;
+  --color-holiday-pine-back: #6f9c89;
+  --color-holiday-trunk: #7a5136;
+  --color-holiday-coal: #1b3139;
+  --color-holiday-carrot: #ef7d2b;
+  --color-holiday-gold: #f2b632;
+  --color-holiday-cheek: #f4a3a8;
+  --color-holiday-tree-snow: #eef4f8;
+  --color-holiday-tree-snow-edge: #a9bcc7;
+  --color-holiday-reindeer: #8a5a3b;
+  --color-holiday-skin: #f3cfb3;
+  --color-holiday-sparkle: #ffd86b;
+  --color-holiday-mini-hill: #e3eaee;
+}
+
+/* Header pill */
+.navidad-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  height: 3rem;
+  padding: 0 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #e3e7ea;
+  border-radius: 40px;
+  background: #fff;
+  box-shadow: 0 4px 6px -1px #0000001a, 0 2px 4px -2px #0000001a;
+  flex-wrap: nowrap;
+}
+/* Keep any header content (title, links) painted above the effects layer. */
+.navidad-header > * {
+  position: relative;
+}
+.navidad-header h1 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+.navidad-brand {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+.navidad-logo {
+  position: relative;
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+.navidad-logo > img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+.navidad-hat {
+  position: absolute;
+  top: -12px;
+  left: 4.94px;
+  width: 18.35px;
+  height: 14.12px;
+  overflow: visible;
+  pointer-events: none;
+}
+.navidad-fx-toggle {
+  position: relative;
+  margin-left: auto;
+  margin-right: 0;
+  border: 1px solid #d5dbe0;
+  border-radius: 999px;
+  background: #fff;
+  padding: 0.2rem 0.65rem;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+/* Overlay layers */
+.navidad-fx-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 40px;
+  pointer-events: none;
+}
+.navidad-scene {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 50%;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 14%, #000 86%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 14%, #000 86%, transparent);
+}
+.navidad-scene .hill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: block;
+  width: 100%;
+  height: 9px;
+}
+.navidad-scene .prop {
+  position: absolute;
+  bottom: 3px;
+  transform: translateX(-50%);
+}
+.navidad-scene svg {
+  display: block;
+  overflow: visible;
+}
+.snowfall,
+.sky-events {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.snowflake-contained {
+  position: absolute;
+  top: 0;
+  display: block;
+  height: 100%;
+  animation-name: snow-fall-contained;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.snowflake-sway {
+  display: block;
+  border-radius: 999px;
+  background: var(--color-holiday-snow);
+  animation-name: snow-sway;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+.santa-flight {
+  position: absolute;
+  top: 3px;
+  left: 0;
+  right: 0;
+  animation: santa-fly 7s linear forwards;
+}
+.santa-bob {
+  width: max-content;
+  animation: santa-bob 0.9s ease-in-out infinite alternate;
+}
+.santa-bob svg {
+  display: block;
+  overflow: visible;
+}
+.sleigh-sparkle {
+  transform-box: fill-box;
+  transform-origin: 50% center;
+  animation: sleigh-sparkle 0.7s ease-in-out infinite alternate;
+}
+.shooting-star {
+  position: absolute;
+  top: 6px;
+  width: 64px;
+  height: 2px;
+  border-radius: 2px;
+  opacity: 0;
+  background: linear-gradient(to right, var(--color-holiday-gold), transparent);
+  animation: shooting-star 1.1s ease-out forwards;
+}
+
+@keyframes snow-fall-contained {
+  0% { transform: translateY(-10%); }
+  100% { transform: translateY(110%); }
+}
+@keyframes snow-sway {
+  0% { transform: translate(-12px); }
+  100% { transform: translate(12px); }
+}
+@keyframes santa-fly {
+  0% { transform: translate(-150px); }
+  100% { transform: translate(100%); }
+}
+@keyframes santa-bob {
+  0% { transform: translateY(0) rotate(-2deg); }
+  100% { transform: translateY(-3px) rotate(1deg); }
+}
+@keyframes sleigh-sparkle {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0.25; transform: scale(0.55); }
+}
+@keyframes shooting-star {
+  0% { opacity: 0; transform: translate(0) rotate(-7deg); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-240px, 28px) rotate(-7deg); }
+}
+
+@media (max-width: 640px) {
+  .navidad-scene { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .snowfall,
+  .sky-events { display: none; }
+  .sleigh-sparkle { animation: none; }
+}
+
+  /* ---------- Xmas effects (same as the app: navidad-fx) — deck adaptations ---------- */
+  .topnav > * { position:relative; }
+  .topnav > .navidad-fx-layer { position:absolute; border-radius:0; }
+  .topnav .navidad-scene { width:42%; right:0; }
+  .brand::before { display:none; }
+  .brand .navidad-logo { width:20px; height:22px; }
+  .brand .navidad-logo svg { display:block; }
+  .brand .navidad-hat { top:-11px; left:3px; width:16px; height:12.3px; }
+  .topnav .navidad-fx-toggle { order:99; margin:0 0 0 10px; background:none; color:var(--muted-2); border:1px solid var(--line);
+    font:600 13px Inter, -apple-system, "Segoe UI", sans-serif; padding:6px 12px; }
+  .topnav .navidad-fx-toggle[aria-pressed="true"] { border-color:var(--lava); color:var(--white); }
+  .topnav .navidad-fx-toggle { white-space:nowrap; flex:none; padding:6px 10px; font-size:12.5px; }
+  .topnav .navidad-scene { opacity:.55; }
+  .topnav .themebtn { padding:6px 10px; font-size:12.5px; margin-right:8px; }
+  .topnav .clock { min-width:0; font-size:11px; letter-spacing:.08em; }
+  .topnav .navbtn { padding:8px 9px; }
+
+  /* ---------- Grinch breaks the screen (original character) ---------- */
+  #grinchFx { position:fixed; inset:0; z-index:95; pointer-events:none; display:none; }
+  #grinchFx.on { display:block; }
+  #grinchFx.broken { pointer-events:auto; cursor:pointer; }
+  #grinchFx svg.glass { position:absolute; inset:0; width:100%; height:100%; }
+  #grinchFx .crack { fill:none; stroke:rgba(255,255,255,.92); stroke-width:1.6; stroke-linejoin:round;
+    filter:drop-shadow(0 0 2px rgba(0,0,0,.6)); }
+  #grinchFx .crack.thin { stroke-width:.9; stroke:rgba(255,255,255,.7); }
+  #grinchFx .shard { fill:rgba(220,240,255,.06); stroke:none; transform-box:fill-box; transform-origin:center; }
+  #grinchFx .shard.alt { fill:rgba(220,240,255,.13); }
+  #grinchFx .gap { fill:rgba(0,0,0,.72); }
+  #grinchFx .flash { position:absolute; inset:0; background:#fff; opacity:0; }
+  #grinchFx .critter { position:absolute; width:250px; height:290px; right:6%; bottom:-320px; }
+  #grinchFx .bubble { position:absolute; right:calc(6% + 210px); bottom:300px; background:#fff; color:#0E1A21; font:800 18px Inter, sans-serif;
+    padding:10px 16px; border-radius:16px; opacity:0; transform:scale(.6); transition:all .25s; box-shadow:0 8px 24px rgba(0,0,0,.35); }
+  #grinchFx .bubble.on { opacity:1; transform:scale(1); }
+  #grinchFx .toast { position:absolute; left:50%; top:90px; transform:translateX(-50%); background:#10291a; color:#62e08f; border:1px solid #2DBE60;
+    font:700 16px Inter, sans-serif; padding:10px 18px; border-radius:999px; opacity:0; transition:opacity .3s; }
+  #grinchFx .toast.on { opacity:1; }
+  @keyframes grinch-shake { 0%,100%{transform:none} 20%{transform:translate(-9px,4px)} 40%{transform:translate(8px,-6px)} 60%{transform:translate(-6px,3px)} 80%{transform:translate(4px,-2px)} }
+  body.shake > section.block.active { animation:grinch-shake .45s ease; }
+  @media (prefers-reduced-motion: reduce) { body.shake > section.block.active { animation:none; } }
+</style>
+</head>
+<body>
+<nav class="topnav" data-navidad-header>
+  <div class="brand"><span class="navidad-logo" data-navidad-logo><svg width="20" height="22" viewBox="0 0 300 331" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M283.923 136.449L150.144 213.624L6.88995 131.168L0 134.982V194.844L150.144 281.115L283.923 204.234V235.926L150.144 313.1L6.88995 230.644L0 234.458V244.729L150.144 331L300 244.729V184.867L293.11 181.052L150.144 263.215L16.0766 186.334V154.643L150.144 231.524L300 145.253V86.2713L292.536 81.8697L150.144 163.739L22.9665 90.9663L150.144 17.8998L254.641 78.055L263.828 72.773V65.4371L150.144 0L0 86.2713V95.6613L150.144 181.933L283.923 104.758V136.449Z" fill="#FF3621"/>
+</svg></span>TALLER DE NAVIDAD · LAKEBASE</div>
+  <button class="navbtn" data-go="b0">Apertura</button>
+  <button class="navbtn" data-go="b1">1 · Ideas</button>
+  <button class="navbtn" data-go="b2">2 · Desde cero</button>
+  <button class="navbtn" data-go="rt">3 · Tiempo real</button>
+  <button class="navbtn" data-go="replica">4 · Escala</button>
+  <button class="navbtn" data-go="b3">5 · Branching</button>
+  <button class="navbtn" data-go="b4">6 · Agéntico</button>
+  <button class="navbtn" data-go="grinch">7 · Grinch</button>
+  <button class="navbtn" data-go="busqueda">8 · Búsqueda</button>
+  <button class="navbtn" data-go="b5">Cierre</button>
+  <button class="navbtn" data-go="glos">Glosario</button>
+  <div class="spacer"></div>
+  <button class="themebtn" id="themeBtn" type="button" title="Cambiar fondo (T)">☀ Fondo blanco</button>
+  <div class="clock" id="clock">0–4'</div>
+</nav>
+
+<!-- ============================== B0 · APERTURA ============================== -->
+<section class="block" id="b0" data-time="0–4'">
+  <div class="kicker">Taller de Navidad · ~59 minutos + 7 y 8 opcionales</div>
+  <h1>Lakebase para <em>aplicaciones agénticas</em></h1>
+  <p class="lead">Hoy construimos desde cero, con solo un workspace, el «Taller de Navidad». Papá Noel y los Reyes Magos son una flota de reparto: datos en Unity Catalog, base operacional en Lakebase y un app que simula incidencias en ramas.</p>
+  <div class="subtabs"><button class="subtab active" data-pane="0">Paso a paso</button><button class="subtab" data-pane="1">Detalle técnico</button><button class="subtab" data-pane="2">Antes de empezar <small>asistentes</small></button><button class="subtab" data-pane="3">Arquitectura <small>paso a paso</small></button></div>
+  <div class="pane active">
+    <div class="grid2">
+      <div class="diagram flow">
+        <svg viewBox="0 0 760 340" role="img" aria-label="Agenda: 8 bloques y cierre">
+          <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5a7480"/></marker></defs>
+          <g class="node" data-step="1"><rect x="20" y="24" width="166" height="86" rx="14"/><text x="103" y="58" text-anchor="middle">1 · Ideas</text><text class="sub" x="103" y="78" text-anchor="middle">5 ideas</text></g>
+          <g class="node" data-step="2"><rect x="202" y="24" width="166" height="86" rx="14"/><text x="285" y="58" text-anchor="middle">2 · Desde cero</text><text class="sub" x="285" y="78" text-anchor="middle">datos → app</text></g>
+          <g class="node" data-step="3"><rect x="384" y="24" width="166" height="86" rx="14"/><text x="467" y="58" text-anchor="middle">3 · Tiempo real</text><text class="sub" x="467" y="78" text-anchor="middle">Zerobus · sink</text></g>
+          <g class="node" data-step="4"><rect x="566" y="24" width="166" height="86" rx="14"/><text x="649" y="58" text-anchor="middle">4 · Escala</text><text class="sub" x="649" y="78" text-anchor="middle">autoscaling · réplica</text></g>
+          <g class="node" data-step="5"><rect x="20" y="150" width="166" height="86" rx="14"/><text x="103" y="184" text-anchor="middle">5 · Branching</text><text class="sub" x="103" y="204" text-anchor="middle">Filomena · DANA · cortes</text></g>
+          <g class="node" data-step="6"><rect x="202" y="150" width="166" height="86" rx="14"/><text x="285" y="184" text-anchor="middle">6 · Agéntico</text><text class="sub" x="285" y="204" text-anchor="middle">Genie Code</text></g>
+          <g class="node" data-step="7"><rect x="384" y="150" width="166" height="86" rx="14" stroke-dasharray="6 5"/><text x="467" y="184" text-anchor="middle">7 · Grinch</text><text class="sub" x="467" y="204" text-anchor="middle">snapshot · PITR</text><text class="sub" x="467" y="220" text-anchor="middle">opcional</text></g>
+          <g class="node" data-step="8"><rect x="566" y="150" width="166" height="86" rx="14" stroke-dasharray="6 5"/><text x="649" y="184" text-anchor="middle">8 · Búsqueda</text><text class="sub" x="649" y="204" text-anchor="middle">Lakebase Search · BM25</text><text class="sub" x="649" y="220" text-anchor="middle">opcional</text></g>
+          <path class="edge" data-step="2" d="M186 67 H200"/><path class="edge" data-step="3" d="M368 67 H382"/><path class="edge" data-step="4" d="M550 67 H564"/><path class="edge" data-step="5" d="M649 110 V130 H103 V148"/><path class="edge" data-step="6" d="M186 193 H200"/><path class="edge" data-step="7" d="M368 193 H382"/><path class="edge" data-step="8" d="M550 193 H564"/>
+          <g class="node" data-step="9"><rect x="20" y="262" width="712" height="64" rx="14"/><text x="376" y="289" text-anchor="middle">Cierre · «Run all» en el minuto 5 → el app está listo al cierre</text><text class="sub" x="376" y="310" text-anchor="middle">facilitador: escala 0,75, ~12 min · asistentes: 0,1, ~5 min · mientras corre, explicamos · 7 y 8 si hay tiempo</text></g>
+        </svg>
+      </div>
+      <ol class="steps compact">
+        <li data-step="1"><b>Conceptos y diferenciadores</b>Qué es Lakebase y por qué encaja con agentes.</li>
+        <li data-step="2"><b>Una app desde cero</b>Un notebook «Run all»: datos → Lakebase → app.</li>
+        <li data-step="3"><b>Tiempo real</b>Zerobus → Spark → Lakebase sink, y un agente revisor.</li>
+        <li data-step="4"><b>Escala</b>Autoscaling del primario y réplica de lectura.</li>
+        <li data-step="5"><b>Ramas como sandbox</b>Filomena, DANA o cortes sin tocar producción.</li>
+        <li data-step="6"><b>Desarrollo agéntico</b>Un agente construye sobre Lakebase (Genie Code).</li>
+        <li data-step="7"><b>El Grinch <small>opcional</small></b>Snapshot, rama PITR y recuperación sin parar el app.</li>
+        <li data-step="8"><b>Búsqueda <small>opcional</small></b>Lakebase Search: BM25 sobre 500.000 familias.</li>
+        <li data-step="9"><b>Cierre y hands-on</b>Por qué Lakebase; quien quiera, sigue en su workspace.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="pane">
+    <div class="grid3">
+      <div class="card"><b>Requisitos</b><ul style="margin:8px 0 0 18px"><li>Workspace AWS o Azure con Lakebase y Databricks Apps</li><li>Cómputo serverless</li><li>Permiso de crear esquema en un catálogo</li></ul></div>
+      <div class="card"><b>Material</b><ul style="margin:8px 0 0 18px"><li><code>navidad-workshop.zip</code> (se reparte en la sala)</li><li>Notebooks <code>00</code> · <code>01</code> · <code>02</code> · <code>99</code></li><li>SQL <code>01–03</code> para el editor de Lakebase</li></ul></div>
+      <div class="card"><b>Datos</b><ul style="margin:8px 0 0 18px"><li>Sintéticos: 21 ciudades, Nochebuena + Reyes</li><li>Carreteras © OpenStreetMap (ODbL)</li><li>Escenarios <b>inspirados en</b> hechos reales</li></ul></div>
+    </div>
+  </div>
+  <div class="pane">
+    <div class="demo">
+      <div class="dstep"><input type="checkbox" /><div><b>Abre tu workspace</b> y entra en tu carpeta de usuario (<i>Workspace → Users → tú</i>).</div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Import → File → <code>navidad-workshop.zip</code></b>. Mantén la estructura de carpetas.<div class="ok">una carpeta <code>navidad-workshop</code> con <code>workshop/notebooks/00_workbench</code></div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Elige un catálogo</b> donde puedas crear un esquema (por ejemplo, tu catálogo de sandbox).</div></div>
+    </div>
+  </div>
+  <div class="pane">
+    <p class="lead" style="margin:0 0 10px">El Taller de Navidad corre sobre la <b>Databricks Data Intelligence Platform</b>. Cada iteración del workshop añade una pieza: pulsa las iteraciones (o →) para construirla; la 8 (Grinch) es opcional y «Objetivo» es la arquitectura final.</p>
+    <div class="arch" data-from="1" data-to="9" data-start="1"></div>
+  </div>
+  <div class="note-src"><h4>NOTAS · APERTURA</h4><ul>
+    <li>Presentarse. Objetivo: que al salir sepan explicar Lakebase en 1 minuto y tengan una app funcionando.</li>
+    <li>El «Taller de Navidad» es una excusa simpática para un caso serio: una flota de reparto con datos, rutas e incidencias.</li>
+    <li>Quien quiera seguir: zip en la sala. Quien no, mira: todo queda en su carpeta para después.</li></ul></div>
+</section>
+
+
+<!-- ============================== B1 · IDEAS ============================== -->
+<section class="block" id="b1" data-time="4–12'">
+  <div class="kicker">Bloque 1 · Conceptos</div>
+  <h2>Lakebase en 5 ideas</h2>
+  <p class="lead">Postgres serverless gestionado dentro de la plataforma de datos: la base operacional de apps y agentes, conectada al lakehouse sin ETL.</p>
+  <div class="subtabs"><button class="subtab active" data-pane="0">Paso a paso</button><button class="subtab" data-pane="1">Detalle técnico</button><button class="subtab" data-pane="2">Demo en vivo <small>D1 · arranque</small></button><button class="subtab" data-pane="3">Arquitectura <small>dónde encaja cada idea</small></button></div>
+  <div class="pane active">
+    <div class="grid2">
+      <div class="diagram">
+        <svg viewBox="0 0 760 420" role="img" aria-label="Arquitectura Lakebase">
+          <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5a7480"/></marker></defs>
+          <g class="node" data-step="1"><rect x="250" y="300" width="260" height="80" rx="14"/><text x="380" y="335" text-anchor="middle">Almacenamiento compartido</text><text class="sub" x="380" y="357" text-anchor="middle">separado del cómputo · historial · copy-on-write</text></g>
+          <g class="node" data-step="1"><rect x="250" y="170" width="120" height="70" rx="12"/><text x="310" y="200" text-anchor="middle">cómputo</text><text class="sub" x="310" y="220" text-anchor="middle">0,5–64 CU · a cero</text></g>
+          <g class="node" data-step="2"><rect x="390" y="170" width="120" height="70" rx="12"/><text x="450" y="200" text-anchor="middle">rama sim-dana</text><text class="sub" x="450" y="220" text-anchor="middle">su propio cómputo</text></g>
+          <path class="edge" data-step="1" d="M310 240 V298"/><path class="edge" data-step="2" d="M450 240 V298"/>
+          <g class="node" data-step="3"><rect x="20" y="300" width="190" height="80" rx="14"/><text x="115" y="335" text-anchor="middle">Lakehouse (Delta · UC)</text><text class="sub" x="115" y="357" text-anchor="middle">analítica · features · contexto</text></g>
+          <path class="edge" data-step="3" d="M210 330 H248"/><path class="edge" data-step="3" d="M248 352 H212"/>
+          <text x="229" y="320" fill="#98A4AA" font-size="11" text-anchor="middle">synced</text><text x="229" y="372" fill="#98A4AA" font-size="11" text-anchor="middle">CDF</text>
+          <g class="node" data-step="4"><rect x="250" y="40" width="260" height="80" rx="14"/><text x="380" y="75" text-anchor="middle">Apps · agentes · AI Gateway</text><text class="sub" x="380" y="97" text-anchor="middle">OAuth del service principal · gobierno UC</text></g>
+          <path class="edge" data-step="4" d="M310 122 V168"/>
+          <g class="node" data-step="5"><rect x="550" y="170" width="190" height="210" rx="14"/><text x="645" y="205" text-anchor="middle">Extensiones</text><text class="sub" x="645" y="232" text-anchor="middle">PostGIS · pgRouting</text><text class="sub" x="645" y="254" text-anchor="middle">pgvector · Lakebase Search</text><text class="sub" x="645" y="276" text-anchor="middle">(vectorial + BM25 + híbrida)</text><text class="sub" x="645" y="310" text-anchor="middle">Postgres 16 · 17 · 18</text></g>
+          <path class="edge" data-step="5" d="M512 205 H548"/>
+        </svg>
+      </div>
+      <ol class="steps">
+        <li data-step="1"><b>Postgres serverless</b>Cómputo y almacenamiento separados; autoscaling y <i>scale-to-zero</i>: reanuda en cientos de ms.</li>
+        <li data-step="2"><b>Branching copy-on-write</b>Una rama es una copia instantánea con su propio cómputo: ideal como sandbox de un agente.</li>
+        <li data-step="3"><b>Lakehouse ↔ operacional sin ETL</b>Synced tables (Delta → Postgres) y CDF (Postgres → Delta).</li>
+        <li data-step="4"><b>Dentro de la plataforma</b>Gobierno UC, Apps con OAuth sin contraseñas, AI Gateway para el modelo.</li>
+        <li data-step="5"><b>Postgres de verdad</b>Extensiones que los agentes y los desarrolladores ya conocen.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="pane">
+    <div class="grid2">
+      <table class="t">
+        <tr><th>Hecho</th><th>Valor (docs públicas, verificar antes de la sesión)</th></tr>
+        <tr><td>GA</td><td>AWS 22-ene-2026 · Azure 2-mar-2026. Autoscaling por defecto desde 12-mar-2026</td></tr>
+        <tr><td>Cómputo</td><td>Autoscaling 0,5–64 CU (1 CU ≈ 2 GB; máx − mín ≤ 16 CU) · fijos hasta 112 CU</td></tr>
+        <tr><td>Scale-to-zero</td><td>Reanuda en cientos de ms · timeout 60 s–7 días · computes ≤ 32 CU · no con HA</td></tr>
+        <tr><td>HA · réplicas</td><td>1 primario + 1–3 secundarias en otras AZ · hasta 6 read replicas por rama</td></tr>
+        <tr><td>Branching</td><td>Copy-on-write, instantáneo · TTL hasta 30 días · reset desde el padre (UI)</td></tr>
+        <tr><td>Synced tables</td><td>Delta → Postgres en modo snapshot, triggered o continuous</td></tr>
+        <tr><td>CDF</td><td>Postgres → Delta: Public Preview</td></tr>
+        <tr><td>Lakebase Search</td><td>GA 18-sep-2026: vectorial + BM25 + híbrida</td></tr>
+        <tr><td>Regiones UE</td><td>AWS eu-west-1/2, eu-central-1 · Azure westeurope, northeurope, francecentral, germanywestcentral, swedencentral, uksouth</td></tr>
+        <tr><td>Precio</td><td>Página pública de precios; sin cifras en la sesión</td></tr>
+      </table>
+      <div class="card">
+        <b>Documentación</b>
+        <ul style="margin:8px 0 0 18px">
+          <li><a href="https://docs.databricks.com/aws/en/oltp/projects/" target="_blank">Lakebase Autoscaling: visión general</a></li>
+          <li><a href="https://docs.databricks.com/aws/en/oltp/projects/manage-computes" target="_blank">Cómputos y autoscaling</a> · <a href="https://docs.databricks.com/aws/en/oltp/projects/scale-to-zero" target="_blank">scale-to-zero</a></li>
+          <li><a href="https://docs.databricks.com/aws/en/oltp/projects/branches" target="_blank">Ramas</a> · <a href="https://docs.databricks.com/aws/en/oltp/projects/manage-branches" target="_blank">gestionar ramas</a></li>
+          <li><a href="https://docs.databricks.com/aws/en/oltp/projects/extensions" target="_blank">Extensiones (PostGIS, pgRouting…)</a></li>
+          <li><a href="https://docs.databricks.com/aws/en/release-notes/lakebase/" target="_blank">Release notes AWS</a> · <a href="https://learn.microsoft.com/en-us/azure/databricks/release-notes/lakebase/" target="_blank">Azure</a></li>
+          <li><a href="https://www.databricks.com/product/pricing/lakebase" target="_blank">Precios</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="pane">
+    <div class="demo">
+      <div class="dstep"><input type="checkbox" /><div><b>Abre <code>workshop/notebooks/00_workbench</code></b><span class="who">FACILITADOR + ASISTENTES</span></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Widgets:</b> <code>catalog</code> = tu catálogo · <code>suffix</code> vacío (o <code>2</code> si repites) · <code>scale</code> <b>0.75</b> (facilitador) o <b>0.1</b> (asistentes) · <code>sync_mode</code> SNAPSHOT · <code>incidents</code> sí</div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Run all</b> (serverless). A 0,75: ~12 min (datos 418 s · Lakebase 32 s · app 186 s · incidencias 13 s). A 0,1: ~5 min (77 s · 31 s · 143 s · 9 s). Seguimos con el bloque 2 mientras corre.<div class="ok">la celda de nombres imprime <code>navidad_&lt;slug&gt;</code>, <code>navidad-&lt;slug&gt;</code> y <code>navidad-&lt;slug&gt;-app</code></div><div class="planb">si falla la importación o los permisos, seguid mirando: el facilitador lo hace en su workspace</div></div></div>
+    </div>
+  </div>
+    <div class="pane">
+    <div class="arch compact" data-from="9" data-to="9" data-start="9"></div>
+  </div>
+  <div class="note-src"><h4>NOTAS · 5 IDEAS</h4><ul>
+    <li>Arranca D1 YA (minuto ~5) y explica mientras corre.</li>
+    <li>Idea 2 es la estrella para agentes: «cada ejecución del agente tiene su rama; si sale mal, se descarta».</li>
+    <li>No dar precios. No decir 32 TB. HA y scale-to-zero son incompatibles.</li></ul></div>
+</section>
+
+<!-- ============================== B2 · DESDE CERO ============================== -->
+<section class="block" id="b2" data-time="12–22'">
+  <div class="kicker">Bloque 2 · Una app desde cero</div>
+  <h2>De datos a app en un «Run all»</h2>
+  <p class="lead">Cada celda del notebook es un paso de la cadena. Sin CLI, sin contraseñas, sin ETL a mano.</p>
+  <div class="subtabs"><button class="subtab active" data-pane="0">Paso a paso</button><button class="subtab" data-pane="1">Detalle técnico</button><button class="subtab" data-pane="2">Demo en vivo <small>D2 · seguimiento</small></button><button class="subtab" data-pane="3">Arquitectura <small>iteraciones 1–4</small></button></div>
+  <div class="pane active">
+    <div class="grid2">
+      <div class="diagram">
+        <svg viewBox="0 0 760 360" role="img" aria-label="Cadena desde cero">
+          <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5a7480"/></marker></defs>
+          <g class="node" data-step="1"><rect x="20" y="40" width="170" height="80" rx="14"/><text x="105" y="75" text-anchor="middle">Generador</text><text class="sub" x="105" y="97" text-anchor="middle">Python · determinista</text></g>
+          <g class="node" data-step="1"><rect x="20" y="200" width="170" height="90" rx="14"/><text x="105" y="235" text-anchor="middle">Unity Catalog</text><text class="sub" x="105" y="257" text-anchor="middle">4 tablas Delta + CDF</text></g>
+          <path class="edge" data-step="1" d="M105 120 V198"/>
+          <g class="node" data-step="2"><rect x="250" y="200" width="200" height="90" rx="14"/><text x="350" y="235" text-anchor="middle">Proyecto Lakebase</text><text class="sub" x="350" y="257" text-anchor="middle">rama production · 0,5–8 CU</text></g>
+          <path class="edge" data-step="3" d="M190 245 H248"/><text x="219" y="236" fill="#98A4AA" font-size="11" text-anchor="middle">synced</text>
+          <g class="node" data-step="3"><rect x="250" y="40" width="200" height="80" rx="14"/><text x="350" y="75" text-anchor="middle">4 synced tables</text><text class="sub" x="350" y="97" text-anchor="middle">*_sync · snapshot</text></g>
+          <path class="edge" data-step="3" d="M350 198 V122"/>
+          <g class="node" data-step="4"><rect x="520" y="200" width="220" height="90" rx="14"/><text x="630" y="235" text-anchor="middle">Databricks App</text><text class="sub" x="630" y="257" text-anchor="middle">Mapa de rutas · Incidencias · SP OAuth</text></g>
+          <path class="edge" data-step="4" d="M452 245 H518"/>
+          <g class="node" data-step="5"><rect x="520" y="40" width="220" height="80" rx="14"/><text x="630" y="75" text-anchor="middle">AI Gateway</text><text class="sub" x="630" y="97" text-anchor="middle">modelo en español</text></g>
+          <path class="edge" data-step="5" d="M630 198 V122"/>
+          <g class="node" data-step="6"><rect x="250" y="310" width="490" height="40" rx="10"/><text x="495" y="335" text-anchor="middle">PostGIS + pgRouting · red de carreteras (OSM) · escenarios</text></g>
+        </svg>
+      </div>
+      <ol class="steps">
+        <li data-step="1"><b>Datos sintéticos → UC</b>Hogares, personas, preferencias y rutas de 5 campañas. Delta con CDF.</li>
+        <li data-step="2"><b>Proyecto Lakebase</b>Postgres 17, rama <code>production</code>, cómputo con scale-to-zero.</li>
+        <li data-step="3"><b>Synced tables</b>Las 4 tablas aparecen en Postgres como <code>*_sync</code>, gestionadas desde UC.</li>
+        <li data-step="4"><b>App</b>El service principal del app obtiene un token OAuth y lee Postgres: sin contraseñas.</li>
+        <li data-step="5"><b>Modelo</b>El app llama al AI Gateway con el mismo token.</li>
+        <li data-step="6"><b>Pista de incidencias</b>Red de carreteras y escenarios en un esquema nativo <code>navidad_geo</code>.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="pane">
+    <div class="grid2">
+      <table class="t">
+        <tr><th>Concepto</th><th>Qué hay que saber</th></tr>
+        <tr><td>Modos de sync</td><td><b>Snapshot</b>: copia completa bajo demanda (lo más barato) · <b>Triggered</b>: incremental al lanzarlo · <b>Continuous</b>: segundos de frescura, pipeline siempre activo</td></tr>
+        <tr><td>Synced = solo lectura</td><td>En <code>production</code>, solo lecturas, índices y DROP. Los datos nuevos van a tablas nuevas</td></tr>
+        <tr><td>Geometría</td><td>Las synced tables no llevan PostGIS: la geometría vive en un esquema nativo (<code>navidad_geo</code>)</td></tr>
+        <tr><td>Identidad del app</td><td>Service principal + recurso <code>postgres</code> (CAN_CONNECT_AND_CREATE). Tokens OAuth de ~1 h, renovables</td></tr>
+        <tr><td>Esquemas</td><td>El SP solo ve lo que se le concede (<code>GRANT</code>) o lo que crea</td></tr>
+      </table>
+      <div class="card"><b>Documentación</b><ul style="margin:8px 0 0 18px">
+        <li><a href="https://docs.databricks.com/aws/en/oltp/projects/sync-tables" target="_blank">Synced tables</a></li>
+        <li><a href="https://docs.databricks.com/aws/en/dev-tools/databricks-apps/" target="_blank">Databricks Apps</a></li>
+        <li><a href="https://docs.databricks.com/aws/en/oltp/projects/manage-projects" target="_blank">Proyectos, límites y regiones</a></li></ul>
+        <h3>Ficheros del repo</h3><p><code>navidad-hack-infra/scripts/</code>: <code>write_uc.py</code> · <code>provision_lakebase.py</code> · <code>deploy_app.py</code> · <code>provision_incidents.py</code></p></div>
+    </div>
+  </div>
+  <div class="pane">
+    <div class="demo">
+      <div class="dstep"><input type="checkbox" /><div><b>Catalog Explorer</b> → tu catálogo → esquema <code>navidad_&lt;slug&gt;</code>: 4 tablas Delta.<div class="ok">households, people, preferences, journeys</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Lakebase</b> (selector de apps → Lakebase) → proyecto <code>navidad-&lt;slug&gt;</code> → rama <code>production</code> → <i>Tables</i>.<div class="ok">4 tablas <code>*_sync</code>; las synced en estado ONLINE en Catalog Explorer</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Editor SQL de Lakebase</b>: pega <code>sql/01_explorar.sql</code> (cambia el esquema).<pre><button class="copy">copiar</button>SELECT year, campaign, count(*) AS paradas
+FROM navidad_<tu_slug>.journeys_sync GROUP BY 1, 2 ORDER BY 1 DESC LIMIT 4;</pre><div class="ok">dos noches por campaña: nochebuena y reyes</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Compute → Apps → <code>navidad-&lt;slug&gt;-app</code></b>: abre el enlace.<div class="ok">«Mapa de rutas» con header navideño (nieve, árboles, muñeco, Papá Noel con renos): Nochebuena/Reyes, ciudad, KPIs y rutas en el mapa; enlaces a Incidencias y Diagnóstico</div><div class="planb">si aún despliega, enséñalo en el workbench del facilitador</div></div></div>
+    </div>
+  </div>
+    <div class="pane">
+    <div class="arch compact" data-from="1" data-to="4" data-start="1"></div>
+  </div>
+  <div class="note-src"><h4>NOTAS · DESDE CERO</h4><ul>
+    <li>Mientras D1 corre, señalar en qué celda está y qué crea.</li>
+    <li>Mensaje: «sin ETL a mano, sin contraseñas, todo gobernado en UC».</li>
+    <li>Snapshot es la opción de workshop; en producción, triggered o continuous según la frescura necesaria.</li></ul></div>
+</section>
+
+<!-- ============================== B3 · TIEMPO REAL ============================== -->
+<section class="block" id="rt" data-time="22–30'">
+  <div class="kicker">Bloque 3 · Tiempo real</div>
+  <h2>Un centro de control en directo sobre Lakebase</h2>
+  <p class="lead">Papá Noel y los duendes reparten por toda España. Cada entrega es un evento que llega por <b>Zerobus</b>, pasa por <b>Spark Structured Streaming</b> y acaba en Lakebase con el <b>Lakebase sink</b>. El app lo pinta en segundos y un agente revisa las incidencias, pero solo actúa cuando alguien confirma.</p>
+  <div class="subtabs"><button class="subtab active" data-pane="0">Paso a paso</button><button class="subtab" data-pane="1">Detalle técnico <small>cómo se escribe en Lakebase</small></button><button class="subtab" data-pane="2">Demo en vivo <small>D2b · notebooks 04 + 05</small></button><button class="subtab" data-pane="3">Arquitectura <small>iteración 5</small></button></div>
+  <div class="pane active">
+    <div class="grid2">
+      <div class="diagram">
+        <svg viewBox="0 0 760 360" role="img" aria-label="Productor, Zerobus, Delta, Spark, Lakebase, app y agente">
+          <defs><marker id="arrowRt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5a7480"/></marker></defs>
+          <g class="node" data-step="1"><rect x="20" y="40" width="150" height="86" rx="14"/><text x="95" y="74" text-anchor="middle">Productor</text><text class="sub" x="95" y="94" text-anchor="middle">notebook 05 · duendes</text><text class="sub" x="95" y="110" text-anchor="middle">~350 eventos/s (15 min)</text></g>
+          <path class="edge" data-step="2" d="M170 83 H208"/>
+          <g class="node" data-step="2"><rect x="210" y="40" width="150" height="86" rx="14"/><text x="285" y="74" text-anchor="middle">Zerobus</text><text class="sub" x="285" y="94" text-anchor="middle">gRPC · sin Kafka</text><text class="sub" x="285" y="110" text-anchor="middle">ack p50 0,2 s</text></g>
+          <path class="edge" data-step="3" d="M360 83 H398"/>
+          <g class="node" data-step="3"><rect x="400" y="40" width="150" height="86" rx="14"/><text x="475" y="74" text-anchor="middle">Delta bronze</text><text class="sub" x="475" y="94" text-anchor="middle">Unity Catalog</text><text class="sub" x="475" y="110" text-anchor="middle">historia completa</text></g>
+          <path class="edge" data-step="4" d="M550 83 H588"/>
+          <g class="node" data-step="4"><rect x="590" y="40" width="150" height="86" rx="14"/><text x="665" y="74" text-anchor="middle">Spark streaming</text><text class="sub" x="665" y="94" text-anchor="middle">notebook 04 · serverless</text><text class="sub" x="665" y="110" text-anchor="middle">último estado por clave</text></g>
+          <path class="edge" data-step="5" d="M665 126 V168"/>
+          <g class="node" data-step="5"><rect x="520" y="170" width="220" height="86" rx="14"/><text x="630" y="204" text-anchor="middle">Lakebase sink</text><text class="sub" x="630" y="224" text-anchor="middle">format("postgresql") + upsertkey</text><text class="sub" x="630" y="240" text-anchor="middle">navidad_live.*</text></g>
+          <path class="edge" data-step="6" d="M520 213 H382"/>
+          <g class="node" data-step="6"><rect x="230" y="170" width="150" height="86" rx="14"/><text x="305" y="204" text-anchor="middle">App /control</text><text class="sub" x="305" y="224" text-anchor="middle">mapa de España</text><text class="sub" x="305" y="240" text-anchor="middle">cada 1,5 s</text></g>
+          <path class="edge" data-step="7" d="M230 213 H172"/>
+          <g class="node" data-step="7"><rect x="20" y="170" width="150" height="86" rx="14"/><text x="95" y="204" text-anchor="middle">Agente</text><text class="sub" x="95" y="224" text-anchor="middle">revisa · propone</text><text class="sub" x="95" y="240" text-anchor="middle">tú confirmas</text></g>
+          <text x="380" y="300" text-anchor="middle" fill="#98A4AA" font-size="13">evento → Lakebase: p50 ≈ 14 s por Zerobus + Spark · 0,02 s en escritura directa</text>
+          <text x="380" y="322" text-anchor="middle" fill="#98A4AA" font-size="12">el agente y el app escriben en Lakebase directamente (OLTP); el sink nunca toca esas tablas</text>
+        </svg>
+      </div>
+      <ol class="steps">
+        <li data-step="1"><b>Productor</b>Reproduce la noche a cámara rápida: cada parada planificada es un evento. Duendes en Nochebuena, pajes en Reyes; ~1,5 % excepciones.</li>
+        <li data-step="2"><b>Zerobus</b>Ingesta directa a una tabla Delta por gRPC, sin Kafka ni Event Hubs. Confirma cada registro cuando es durable (<i>at-least-once</i>).</li>
+        <li data-step="3"><b>Delta bronze</b>Toda la historia de eventos, gobernada en Unity Catalog: analítica, auditoría y reprocesado.</li>
+        <li data-step="4"><b>Spark Structured Streaming</b>Se queda con el último evento por hogar y por ayudante, y quita duplicados de excepciones.</li>
+        <li data-step="5"><b>Lakebase sink</b><code>writeStream.format("postgresql")</code> con <code>upsertkey</code>: INSERT … ON CONFLICT en tablas con clave primaria.</li>
+        <li data-step="6"><b>Centro de control</b>El app lee solo lo que ha cambiado (cursor <code>updated_at</code>): entregas, posiciones, excepciones y latencia real.</li>
+        <li data-step="7"><b>Agente con confirmación</b>Consulta Lakebase (hogar, ayudantes cercanos, casos parecidos), propone 2–3 acciones de un catálogo cerrado y espera a que alguien confirme.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="pane">
+    <div class="grid2">
+      <div>
+        <h3 style="margin-top:0">Tres formas de escribir en Lakebase</h3>
+        <table class="t">
+          <tr><th>Forma</th><th>Cuándo</th><th>En el taller</th></tr>
+          <tr><td><b>Synced tables</b><br><small>UC → Postgres, gestionado</small></td><td>Datos del lakehouse que el app necesita en Postgres. Snapshot, triggered o continuous</td><td><code>*_sync</code> (bloque 2)</td></tr>
+          <tr><td><b>Lakebase sink</b><br><small>Structured Streaming</small></td><td>Estado en tiempo real a partir de eventos. Upsert por clave primaria</td><td><code>delivery_status</code>, <code>helper_position</code>, <code>exception_event</code></td></tr>
+          <tr><td><b>Escritura directa</b><br><small>psycopg / JDBC, OLTP</small></td><td>Lo que escriben el app y los agentes: decisiones, estado, memoria</td><td><code>exception_state</code>, <code>agent_review</code>, <code>agent_action</code></td></tr>
+        </table>
+        <p style="margin-top:10px"><b>Una tabla, un escritor.</b> El sink escribe el estado en directo; el app y el agente escriben sus decisiones. Una vista (<code>v_exception</code>) las une.</p>
+
+      </div>
+      <div class="card"><b>El sink, en 7 líneas</b>
+<pre style="margin-top:8px">(latest_per_household.writeStream
+   .format("postgresql")
+   .outputMode("update")
+   .option("endpoint", "navidad-&lt;slug&gt;.production.primary")
+   .option("dbtable", "navidad_live.delivery_status")
+   .option("upsertkey", "sim_run_id,household_id")
+   .option("checkpointLocation", "/Volumes/…/live_checkpoints/delivery_status")
+   .trigger(availableNow=True)   # serverless
+   .start())</pre>
+        <b>Escritura directa del agente</b>
+<pre style="margin-top:8px">INSERT INTO navidad_live.exception_state
+       (exception_id, status, resolution, updated_by)
+VALUES (%s, 'resuelta', %s, %s)
+ON CONFLICT (exception_id) DO UPDATE
+   SET status = 'resuelta', resolution = EXCLUDED.resolution;</pre>
+        <h3>Documentación</h3><ul style="margin:6px 0 0 18px">
+          <li><a href="https://docs.databricks.com/aws/en/structured-streaming/lakebase" target="_blank">Lakebase sink (Structured Streaming)</a></li>
+          <li><a href="https://docs.databricks.com/ingestion/zerobus-overview" target="_blank">Zerobus Ingest</a></li></ul></div>
+    </div>
+    <div style="margin-top:18px">
+        <h3>¿Y por debajo del segundo?</h3>
+        <p style="margin:4px 0 8px"><b>Escritura directa en Lakebase: p50 0,02 s</b> (evento producido → fila en Lakebase). Sin Spark, sin Zerobus, sin infraestructura nueva: el productor (o el app, o el agente) hace <code>INSERT … ON CONFLICT</code>. Es la respuesta sub-segundo de la demo: «▶ Iniciar noche» con destino <b>Directo a Lakebase</b>.</p>
+        <h3>Caminos de ingesta · evento producido → Lakebase</h3>
+        <table class="t wrap" style="table-layout:fixed;width:100%"><colgroup><col style="width:46%"><col style="width:18%"><col style="width:36%"></colgroup>
+          <tr><th>Camino</th><th>Latencia</th><th>Cuándo / qué necesita</th></tr>
+          <tr><td><b>Escritura directa</b> (productor / app, psycopg) · <i>sub-segundo de la demo</i></td><td><b>p50 0,02 s · p95 0,03 s</b> <small>(medido)</small></td><td>Estado operacional al instante; la historia en el lakehouse va aparte (p. ej. Zerobus en paralelo)</td></tr>
+          <tr><td>Zerobus → Delta → Spark <b>serverless</b> (<code>AvailableNow</code> en bucle) → Lakebase sink</td><td>p50 ≈ 14 s · p95 ≈ 23 s <small>(medido)</small></td><td>Historia completa en Delta y sin broker. Suelos: commit de Zerobus cada ~5 s + ~5 s por ejecución</td></tr>
+          <tr><td>Spark <b>serverless</b> sin broker ni Delta (fuente <code>rate</code>) → Lakebase sink · notebook 06</td><td>p50 5,7 s · p95 8,0 s <small>(medido)</small></td><td>Aísla el coste del bucle <code>AvailableNow</code> (~4,9 s por ejecución)</td></tr>
+          <tr><td>Kafka / Event Hubs / Kinesis → <b>Real-Time Mode en Lakeflow pipelines</b> (serverless, continuo) → <code>ForEach</code> → Lakebase</td><td>~0,1–1 s <small>(estimado)</small></td><td>Spark en el camino caliente sin clúster. Necesita un broker; sink nativo de Lakebase para pipelines: anunciado</td></tr>
+          <tr><td>Kafka / Event Hubs → Spark <b>clásico</b>: <code>processingTime</code> 1 s o <b>Real-Time Mode</b> → Lakebase sink</td><td>~1,5–3 s · &lt; 1 s con RTM <small>(estimado)</small></td><td>Clúster clásico DBR 18 LTS+, Photon desactivado para RTM; broker</td></tr>
+        </table>
+        <p style="margin-top:8px;font-size:13px;color:var(--muted-2)">Real-Time Mode solo lee de Kafka, Event Hubs, MSK o Kinesis (no de Delta ni de Zerobus) y escribe en Kafka/Event Hubs o con <code>ForEach</code>. En serverless funciona dentro de Lakeflow pipelines (modo continuo).</p>
+    </div>
+  </div>
+  <div class="pane">
+    <div class="demo">
+      <div class="dstep"><input type="checkbox" /><div><b>Abre el app en <code>/control</code></b> (enlace «Centro de control»).<div class="ok">«No hay ejecuciones» o la última noche, en gris</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>▶ Iniciar noche</b> en el app (Nochebuena · 15 min · Zerobus → Spark). Lanza el job <code>navidad-live-&lt;slug&gt;</code>: notebooks 04 (stream) y 05 (productor) en paralelo, en serverless.<div class="ok">«Arrancando el job…» → «Preparando stream y productor…» → «EN DIRECTO» en ~75 s; el mapa se llena de verde</div><div class="planb">sin Zerobus: destino «Directo a Lakebase» · o los notebooks 04 y 05 a mano (Run all)</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Señala la latencia</b> (KPI «evento → Lakebase») y una ciudad.<div class="ok">p50 ≈ 14 s por Zerobus → Delta → Spark, todo serverless</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>■ Parar y ▶ otra vez</b> con destino <b>Directo a Lakebase</b>: la respuesta sub-segundo.<div class="ok">«EN DIRECTO» en segundos y latencia ≈ 0,02 s; mismo app, mismas tablas, sin Spark</div><div class="planb">enseñar la tabla «Caminos de ingesta» (Detalle técnico) si no hay tiempo</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Clic en una excepción</b> → «Revisar con el agente» → <b>Confirmar</b> una acción.<div class="ok">diagnóstico + 2–3 acciones; al confirmar, «Resueltas con el agente» sube y el punto desaparece</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>■ Parar</b> al acabar el bloque.<div class="ok">«Parando…» (~30 s) → «Última noche parada»; la noche queda «cancelada» y se puede revisar</div></div></div>
+    </div>
+  </div>
+  <div class="pane">
+    <div class="arch compact" data-from="5" data-to="5" data-start="5"></div>
+  </div>
+  <div class="note-src"><h4>NOTAS · TIEMPO REAL</h4><ul>
+    <li>▶ Iniciar noche al empezar el bloque: ~75 s hasta «EN DIRECTO» (arranque serverless + %pip). Si falla una tarea, el job la reintenta una vez.</li>
+    <li>Latencia medida = <code>updated_at</code> (trigger en Lakebase) − <code>sent_ts</code> (productor): incluye Zerobus, Delta y el sink.</li>
+    <li>Sub-segundo = escritura directa (0,02 s medido). Real-Time Mode: GA en Lakeflow pipelines serverless (continuo), pero solo con Kafka / Event Hubs / Kinesis como fuente y <code>ForEach</code> hacia Lakebase: no lo prometemos sin broker.</li>
+    <li>Asistentes: no ejecutan 04/05; revisan la arquitectura y el código de escritura (Detalle técnico).</li></ul></div>
+</section>
+
+<!-- ============================== B4 · ESCALA (autoscaling + réplica de lectura) ============================== -->
+<section class="block" id="replica" data-time="30–36'">
+  <div class="kicker">Bloque 4 · Escala</div>
+  <h2>El primario escala solo; las lecturas, en una réplica</h2>
+  <p class="lead">El cómputo primario de Lakebase sube y baja de CU con la carga, sin cortar conexiones, y se apaga cuando no hay uso. Cuando el panel lee mucho mientras la ingesta escribe, se añade una <b>réplica de lectura</b>: otro cómputo sobre el <b>mismo almacenamiento</b>, sin copiar datos. Lecturas y escrituras escalan por separado.</p>
+  <div class="subtabs"><button class="subtab active" data-pane="0">Paso a paso <small>animado</small></button><button class="subtab" data-pane="1">Detalle técnico</button><button class="subtab" data-pane="2">Demo en vivo <small>notebook 07</small></button></div>
+  <div class="pane active flow-pane">
+    <div class="grid2">
+      <div class="diagram flow">
+        <div class="flow-bar"><button class="flow-play" type="button">▶ Reproducir</button><span>o → / clic en cada paso</span></div>
+        <svg viewBox="0 0 760 430" role="img" aria-label="El primario escala con la carga; después se añade una réplica de lectura sobre el mismo almacenamiento y el app lee de ella"
+             data-pos='{"1":[350,130],"2":[105,150],"3":[350,226],"4":[620,20],"5":[600,130],"6":[660,108],"7":[105,270],"8":[250,392]}'>
+          <defs><marker id="arrowEs" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5a7480"/></marker></defs>
+          <text class="lane-lbl dev" x="20" y="138">ESCRITURAS</text>
+          <text class="lane-lbl" x="740" y="112" text-anchor="end">LECTURAS</text>
+          <!-- writers -->
+          <g class="node" data-step="2"><rect x="20" y="150" width="170" height="90" rx="14"/><text x="105" y="178" text-anchor="middle">Ingesta</text><text class="sub" x="105" y="198" text-anchor="middle">entregas en directo</text><text class="sub" x="105" y="214" text-anchor="middle">(sink o escritura directa)</text><text class="sub" x="105" y="230" text-anchor="middle">+ synced tables (batch)</text></g>
+          <g class="node" data-step="7"><rect x="20" y="270" width="170" height="70" rx="14"/><text x="105" y="298" text-anchor="middle">Agente y ▶ / ■</text><text class="sub" x="105" y="318" text-anchor="middle">decisiones · estado</text></g>
+          <path class="edge" data-step="2" d="M190 195 H248"/>
+          <path class="edge" data-step="7" d="M190 305 C 222 305, 222 245, 248 245"/>
+          <text class="sub edge-lbl" data-step="2" x="196" y="187">carga ↑</text>
+          <!-- primary with CU gauge -->
+          <g class="node" data-step="1"><rect x="250" y="130" width="200" height="130" rx="14"/><text x="350" y="155" text-anchor="middle">Cómputo primario</text><text class="sub" x="350" y="174" text-anchor="middle">lectura-escritura · primary</text><text class="sub" x="350" y="190" text-anchor="middle">autoscaling 0,5–8 CU</text><text class="sub" x="350" y="206" text-anchor="middle">scale-to-zero tras 60 s sin uso</text></g>
+          <rect class="cu" data-step="1" x="262" y="218" width="54" height="14" rx="3"/>
+          <rect class="cu" data-step="3" x="322" y="218" width="54" height="14" rx="3"/>
+          <rect class="cu" data-step="3" x="382" y="218" width="56" height="14" rx="3"/>
+          <text class="sub edge-lbl" data-step="3" x="350" y="250" text-anchor="middle">↑ más CU, sin cortar conexiones</text>
+          <!-- replica with its own gauge -->
+          <g class="node" data-step="5"><rect x="500" y="130" width="200" height="130" rx="14"/><text x="600" y="155" text-anchor="middle">Réplica de lectura</text><text class="sub" x="600" y="174" text-anchor="middle">endpoint READ_ONLY · ~2 s</text><text class="sub" x="600" y="190" text-anchor="middle">misma rama, mismo almacenamiento</text><text class="sub" x="600" y="206" text-anchor="middle">su propio autoscaling</text></g>
+          <rect class="cu" data-step="5" x="512" y="218" width="54" height="14" rx="3"/>
+          <rect class="cu" data-step="6" x="572" y="218" width="54" height="14" rx="3"/>
+          <!-- shared storage -->
+          <g class="node" data-step="1"><rect x="250" y="300" width="450" height="44" rx="12"/><text x="475" y="319" text-anchor="middle">Almacenamiento compartido</text><text class="sub" x="475" y="335" text-anchor="middle">páginas + WAL · el cómputo escala aparte del almacenamiento</text></g>
+          <path class="edge" data-step="1" d="M350 260 V298"/>
+          <path class="edge" data-step="5" d="M600 298 V262"/>
+          <text class="sub edge-lbl" data-step="5" x="608" y="283">lee las mismas páginas</text>
+          <!-- app -->
+          <g class="node" data-step="4"><rect x="500" y="20" width="240" height="70" rx="14"/><text x="620" y="48" text-anchor="middle">App /control</text><text class="sub" x="620" y="68" text-anchor="middle">KPIs · mapa · excepciones</text></g>
+          <path class="edge" data-step="4" d="M540 90 C 540 112, 400 104, 400 128"/>
+          <text class="sub edge-lbl" data-step="4" x="392" y="104" text-anchor="end">lee del primario: compite con la ingesta</text>
+          <path class="edge" data-step="6" d="M660 90 V128"/>
+          <text class="sub edge-lbl" data-step="6" x="652" y="114" text-anchor="end">lee de la réplica · p50 3 ms</text>
+          <!-- result -->
+          <g class="node res" data-step="8"><rect x="250" y="362" width="490" height="56" rx="12"/>
+            <text class="sub chk" x="266" y="384">✓ lecturas y escrituras escalan por separado</text>
+            <text class="sub chk" x="266" y="404">✓ sin carga, primario y réplica bajan a cero · retraso p50 3 ms · p95 3 ms</text></g>
+          <circle class="token" r="6" cx="350" cy="130"/>
+        </svg>
+      </div>
+      <ol class="steps">
+        <li data-step="1"><b>Cómputo primario con autoscaling</b>Lectura-escritura, entre 0,5 y 8 CU según la carga. Sin uso, se apaga (scale-to-zero: 60 s en este workbench, 300 s en Free Edition) y despierta con la primera conexión.</li>
+        <li data-step="2"><b>Llega la carga</b>La ingesta en tiempo real (Lakebase sink o escritura directa) y las synced tables desde Unity Catalog escriben en el primario.</li>
+        <li data-step="3"><b>El primario escala</b>Sube de CU sin cortar conexiones ni cambiar de host; cuando baja la carga, vuelve a bajar. Solo escala el cómputo: el almacenamiento va aparte.</li>
+        <li data-step="4"><b>El panel también lee del primario</b>Con todo en un cómputo, los KPIs, el mapa y las excepciones de <code>/control</code> compiten con la ingesta.</li>
+        <li data-step="5"><b>Añadir una réplica de lectura</b>Un endpoint <code>READ_ONLY</code> en la misma rama, creado en ~2 s: lee las mismas páginas (sin copiar datos) y tiene su propio autoscaling.</li>
+        <li data-step="6"><b>El app lee de la réplica</b>KPIs, mapa y excepciones, con la insignia «Lecturas: réplica». Retraso medido: p50 3 ms · p95 3 ms.</li>
+        <li data-step="7"><b>Las escrituras siguen en el primario</b>Sink, escritura directa, el agente y los botones ▶ / ■: una tabla, un escritor, siempre en el primario.</li>
+        <li data-step="8"><b>Resultado</b>Lecturas y escrituras escalan por separado; cuando no hay carga, ambos cómputos bajan a cero.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="pane">
+    <div class="grid2">
+      <div>
+        <h3 style="margin-top:0">Autoscaling del primario</h3>
+        <table class="t wrap" style="table-layout:fixed;width:100%"><colgroup><col style="width:30%"><col style="width:70%"></colgroup>
+          <tr><th>Aspecto</th><th>Cómputo primario</th></tr>
+          <tr><td>Rango</td><td>Mínimo y máximo de CU por cómputo (en el taller: 0,5–8 CU; Free Edition: hasta 1 CU)</td></tr>
+          <tr><td>Scale-to-zero</td><td>Se apaga tras un tiempo sin uso (60 s en este workbench; 300 s mínimo en Free Edition) y despierta con la primera conexión</td></tr>
+          <tr><td>Qué escala</td><td>Solo el cómputo (CPU y memoria); el almacenamiento es aparte y no se mueve</td></tr>
+          <tr><td>Conexiones</td><td>Mismo host al escalar; tras scale-to-zero, la primera conexión despierta el cómputo (por eso el app reconecta)</td></tr>
+        </table>
+        <h3>Qué es una réplica de lectura en Lakebase</h3>
+        <table class="t wrap" style="table-layout:fixed;width:100%"><colgroup><col style="width:30%"><col style="width:70%"></colgroup>
+          <tr><th>Aspecto</th><th>Réplica de lectura</th></tr>
+          <tr><td>Qué es</td><td>Un endpoint de cómputo de tipo <code>READ_ONLY</code> en la misma rama que el primario (creado en ~2 s)</td></tr>
+          <tr><td>Datos</td><td>El mismo almacenamiento que el primario: no se copian datos</td></tr>
+          <tr><td>Cómputo</td><td>Propio, con su propio autoscaling y scale-to-zero</td></tr>
+          <tr><td>Retraso</td><td>Milisegundos · medido en el taller: p50 3 ms · p95 3 ms</td></tr>
+          <tr><td>Conexión</td><td>Su propio host; mismos roles de Postgres y OAuth que el primario</td></tr>
+          <tr><td>Escrituras</td><td>No: <code>INSERT</code> / <code>UPDATE</code> van siempre al primario</td></tr>
+        </table>
+        <div class="grid2" style="margin-top:14px;gap:16px">
+          <div><h3 style="margin-top:0">Cuándo usarla</h3><ul style="margin:6px 0 0 18px">
+            <li>Paneles y dashboards que refrescan a menudo</li>
+            <li>Agentes que consultan mucho (contexto, búsquedas)</li>
+            <li>Informes y consultas pesadas en horas de ingesta</li></ul></div>
+          <div><h3 style="margin-top:0">Cuándo no</h3><ul style="margin:6px 0 0 18px">
+            <li>Leer justo después de escribir (p. ej. confirmar una acción y mostrarla): mejor el primario</li>
+            <li>Cualquier escritura</li></ul></div>
+        </div>
+      </div>
+      <div class="card"><b>Crear la réplica</b> <small style="color:var(--muted)">(ilustrativo, SDK de Python)</small>
+<pre style="margin-top:8px">from databricks.sdk.service.postgres import (
+    Endpoint, EndpointSpec, EndpointType)
+
+w.postgres.create_endpoint(
+    parent="projects/&lt;p&gt;/branches/production",
+    endpoint_id="replica",
+    endpoint=Endpoint(spec=EndpointSpec(
+        endpoint_type=EndpointType.ENDPOINT_TYPE_READ_ONLY,
+        autoscaling_limit_min_cu=0.5,
+        autoscaling_limit_max_cu=4))).wait()</pre>
+        <b>En el app: dos pools</b>
+<pre style="margin-top:8px">reads  = Db(endpoint=".../endpoints/replica")  # KPIs, mapa, feed
+writes = Db(endpoint=".../endpoints/primary")  # agente, ▶ / ■
+
+state  = reads.q("SELECT … FROM navidad_live.v_city_progress …")
+writes.tx(confirm_action)</pre>
+        <h3>Documentación</h3><ul style="margin:6px 0 0 18px">
+          <li><a href="https://docs.databricks.com/aws/en/oltp/projects/" target="_blank">Lakebase: proyectos, ramas y cómputos</a></li></ul></div>
+    </div>
+  </div>
+  <div class="pane">
+    <div class="demo">
+      <div class="dstep"><input type="checkbox" /><div><b>Lakebase</b> → <code>production</code> → Computes: <code>primary</code> 0,5–8 CU.<div class="ok">durante ▶ Iniciar noche, mira cómo sube el uso del primario; al parar, baja (y se apaga sin uso)</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Notebook <code>07_replica_lectura</code></b> → <i>Run all</i>.<div class="ok">crea el endpoint <code>replica</code> en la rama <code>production</code> (~2 s) y mide el retraso de la réplica</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>En <code>/control</code></b> aparece la insignia «Lecturas: réplica».<div class="ok">KPIs, mapa y excepciones se leen de la réplica; el agente y ▶ / ■ escriben en el primario</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>▶ Iniciar noche</b>.<div class="ok">los KPIs siguen fluyendo desde la réplica mientras la ingesta escribe en el primario</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Lakebase</b> → Branches → <code>production</code> → Computes.<div class="ok">dos cómputos: <code>primary</code> (lectura-escritura) y <code>replica</code> (solo lectura), cada uno con su uso</div><div class="planb">captura de la pantalla de Computes</div></div></div>
+    </div>
+  </div>
+  <div class="note-src"><h4>NOTAS · ESCALA</h4><ul>
+    <li>Orden: primero el autoscaling del primario (nada que configurar durante la noche), después la réplica para separar lecturas.</li>
+    <li>No dar cifras de CU durante la noche: enseñar la gráfica de uso en Computes.</li>
+    <li>Idea clave de la réplica: misma rama, mismo almacenamiento, otro cómputo. Lectura justo después de escribir → primario.</li>
+    <li>Retraso medido en el workspace de referencia (30 sondas, desde la región): p50 3,2 ms · p95 3,4 ms · máx 16 ms.</li></ul></div>
+</section>
+
+<!-- ============================== B3 · BRANCHING ============================== -->
+<section class="block" id="b3" data-time="36–48'">
+  <div class="kicker">Bloque 5 · Branching para agentes y what-if</div>
+  <h2>Una rama por simulación: DANA en Valencia, cortes en Barcelona</h2>
+  <p class="lead">El app crea una rama de producción en segundos y aplica la incidencia allí. pgRouting recalcula las rutas y sugiere un plan. Producción no se toca hasta «Aplicar plan».</p>
+  <div class="subtabs"><button class="subtab active" data-pane="0">Paso a paso</button><button class="subtab" data-pane="1">Detalle técnico</button><button class="subtab" data-pane="2">Demo en vivo <small>D3 · nunca cortar</small></button><button class="subtab" data-pane="3">Arquitectura <small>iteración 6</small></button><button class="subtab" data-pane="4">Planificador · lógica y pgRouting <small>animado</small></button></div>
+  <div class="pane active">
+    <div class="grid2">
+      <div class="diagram">
+        <svg viewBox="0 0 760 380" role="img" aria-label="Ramas de simulación">
+          <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5a7480"/></marker></defs>
+          <g class="node" data-step="1"><rect x="20" y="160" width="190" height="80" rx="14"/><text x="115" y="195" text-anchor="middle">production</text><text class="sub" x="115" y="217" text-anchor="middle">zonas inactivas · intacta</text></g>
+          <path class="edge" data-step="2" d="M210 185 C 260 185, 260 80, 318 80"/><path class="edge" data-step="2" d="M210 215 C 260 215, 260 300, 318 300"/>
+          <g class="node" data-step="2"><rect x="320" y="40" width="200" height="80" rx="14"/><text x="420" y="75" text-anchor="middle">sim-dana-…</text><text class="sub" x="420" y="97" text-anchor="middle">~3 s · cómputo propio · TTL 24 h</text></g>
+          <g class="node" data-step="2"><rect x="320" y="260" width="200" height="80" rx="14"/><text x="420" y="295" text-anchor="middle">sim-bcn-…</text><text class="sub" x="420" y="317" text-anchor="middle">minuto 0 → 40</text></g>
+          <g class="node" data-step="3"><rect x="560" y="40" width="180" height="80" rx="14"/><text x="650" y="75" text-anchor="middle">zona roja</text><text class="sub" x="650" y="97" text-anchor="middle">costes de carretera</text></g>
+          <path class="edge" data-step="3" d="M520 80 H558"/>
+          <g class="node" data-step="4"><rect x="560" y="150" width="180" height="80" rx="14"/><text x="650" y="185" text-anchor="middle">pgRouting</text><text class="sub" x="650" y="207" text-anchor="middle">con vs sin incidencia</text></g>
+          <path class="edge" data-step="4" d="M650 120 V148"/>
+          <g class="node" data-step="5"><rect x="560" y="260" width="180" height="80" rx="14"/><text x="650" y="295" text-anchor="middle">plan sugerido</text><text class="sub" x="650" y="317" text-anchor="middle">desvíos · recogida · refuerzo</text></g>
+          <path class="edge" data-step="5" d="M650 230 V258"/>
+          <path class="edge" data-step="6" d="M560 335 C 300 380, 150 330, 115 242"/>
+          <text x="300" y="372" fill="#98A4AA" font-size="12">«Aplicar plan» → solo navidad_geo.applied_plan · «Descartar» → borrar rama</text>
+        </svg>
+      </div>
+      <ol class="steps">
+        <li data-step="1"><b>Producción intacta</b>Los escenarios están cargados, pero inactivos.</li>
+        <li data-step="2"><b>Crear rama</b>Copy-on-write desde production: ~3 s, con su propio cómputo y caducidad.</li>
+        <li data-step="3"><b>Aplicar la incidencia</b>Zona roja: calles cerradas o más lentas (coste de cada tramo de carretera).</li>
+        <li data-step="4"><b>pgRouting</b>Tiempo por carretera de cada tramo afectado, antes y después.</li>
+        <li data-step="5"><b>Plan</b>Desvíos, puntos de recogida, refuerzos (niños primero) y reordenación TSP.</li>
+        <li data-step="6"><b>Decidir</b>Aplicar el plan a producción o descartar la rama.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="pane">
+    <div class="grid2">
+      <table class="t">
+        <tr><th>Pieza</th><th>Qué hace</th></tr>
+        <tr><td>Rama hija</td><td>Copy-on-write; las synced tables llegan como <b>copias escribibles</b> y la rama puede cambiar lo que quiera</td></tr>
+        <tr><td>Medido (workspace de referencia)</td><td>Crear rama 2–3 s · conectar 0,3 s · borrar 0,5–1 s · en la rama: 3 zonas y 7.840 tramos de carretera modificados; en production: 0</td></tr>
+        <tr><td>Cómputo</td><td>Cada rama tiene su endpoint (0,5–8 CU, a cero tras 60 s). El app guarda como mucho 3 ramas</td></tr>
+        <tr><td>Permiso</td><td>El SP del app necesita <b>Can Manage</b> sobre el proyecto para crear y borrar ramas</td></tr>
+        <tr><td><code>pgr_dijkstraCost</code></td><td>Tiempo mínimo por carretera para miles de pares (muestra determinista ≤ 3.000 tramos)</td></tr>
+        <tr><td><code>pgr_dijkstra</code></td><td>Geometría del desvío (los peores tramos)</td></tr>
+        <tr><td><code>pgr_TSP</code></td><td>Reordena ≤ 120 paradas afectadas (matriz <code>pgr_dijkstraCostMatrix</code>)</td></tr>
+        <tr><td><code>pgr_strongComponents</code></td><td>Red bien conectada (las calles de sentido único pueden aislar nodos)</td></tr>
+        <tr><td>PostGIS</td><td>Zonas, buffers, KNN (<code>&lt;-&gt;</code>), agrupación de puntos de recogida (<code>ST_ClusterDBSCAN</code>)</td></tr>
+      </table>
+      <div class="card"><b>Documentación</b><ul style="margin:8px 0 0 18px">
+        <li><a href="https://docs.databricks.com/aws/en/oltp/projects/branches" target="_blank">Ramas en Lakebase</a></li>
+        <li><a href="https://docs.pgrouting.org/3.6/en/" target="_blank">pgRouting 3.6</a> · <a href="https://postgis.net/docs/" target="_blank">PostGIS</a></li>
+        <li><a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap (ODbL)</a></li></ul>
+        <h3>SQL equivalente</h3><pre><button class="copy">copiar</button>-- en una RAMA, nunca en production
+SELECT navidad_geo.set_minute('dana_valencia', 10000);
+SELECT navidad_geo.simulate('navidad_<tu_slug>', 'dana_valencia') - 'routes';
+SELECT navidad_geo.suggest('navidad_<tu_slug>', 'dana_valencia');</pre></div>
+    </div>
+  </div>
+  <div class="pane">
+    <div class="demo">
+      <div class="dstep"><input type="checkbox" /><div><b>Workbench preparado</b> (workspace del facilitador) → <code>/planner</code>.<div class="ok">3 escenarios; al pulsar DANA aparece el corredor en rojo al sur de Valencia</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Simular en rama (DANA)</b>.<div class="ok">badge <code>⑂ sim-dana-…</code>; fases con tiempos (rama ≈ 3 s, rutas ≈ 6–8 s)</div><div class="planb">captura de una ejecución previa (carpeta plan-b)</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Leer el resultado</b>: producción vs rama.<div class="ok">≈ 1.000 hogares sin acceso · ≈ 1.700 paradas fuera de la noche · desvíos verdes · puntos de recogida azules · 1 ayudante · niños tarde → 0 priorizando</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Barcelona minuto a minuto</b>: Simular → min 0 → min 20 → min 40.<div class="ok">los cortes aparecen uno a uno; «hogares sin acceso» sube en cada paso (min 0 &lt; min 20 &lt; min 40)</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Descartar rama</b> (o Aplicar plan).<div class="ok">la rama desaparece de Lakebase → Branches; production sin cambios</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Asistentes:</b> su app (D1) ya tiene <code>/planner</code>, con DANA y Barcelona a escala 0,1.<span class="who">ASISTENTES</span></div></div>
+    </div>
+  </div>
+    <div class="pane">
+    <div class="arch compact" data-from="6" data-to="6" data-start="6"></div>
+  </div>
+  <div class="pane flow-pane">
+    <div class="grid2">
+      <div class="diagram flow">
+        <div class="flow-bar"><button class="flow-play" type="button">▶ Reproducir</button><span>o → / clic en cada paso</span></div>
+        <svg viewBox="0 0 760 480" role="img" aria-label="Lógica del planificador: red de carreteras, zonas en la rama, tramos, pgRouting, carga, parámetros, sugerencias y decisión"
+             data-pos='{"1":[120,58],"2":[330,58],"3":[495,58],"4":[660,58],"5":[660,208],"6":[495,208],"7":[330,208],"8":[560,350]}'>
+          <defs><marker id="arrowPl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5a7480"/></marker></defs>
+          <text class="lane-lbl" x="20" y="44">PRODUCCIÓN</text>
+          <rect class="lanebox" x="243" y="30" width="507" height="310" rx="16"/>
+          <text class="lane-lbl dev" x="258" y="48">RAMA sim-dana-… · copy-on-write · cómputo propio</text>
+          <!-- 1 production: road network -->
+          <g class="node" data-step="1"><rect x="20" y="58" width="200" height="112" rx="14"/><text x="120" y="84" text-anchor="middle">Red de carreteras</text>
+            <text class="sub" x="120" y="104" text-anchor="middle">OpenStreetMap → ways · vertices</text>
+            <text class="sub" x="120" y="120" text-anchor="middle">coste = segundos a velocidad</text>
+            <text class="sub" x="120" y="134" text-anchor="middle">nocturna por tipo de vía</text>
+            <text class="sub" x="120" y="152" text-anchor="middle">hogar → vértice más cercano</text></g>
+          <path class="edge fork" data-step="2" d="M220 114 C 236 114, 238 112, 253 112"/>
+          <text class="sub edge-lbl" data-step="2" x="226" y="104">copia</text>
+          <!-- row 1 inside the branch -->
+          <g class="node" data-step="2"><rect x="255" y="58" width="150" height="112" rx="14"/><text x="330" y="84" text-anchor="middle">Escenario → zonas</text>
+            <text class="sub" x="330" y="104" text-anchor="middle">cerrada · más lenta</text>
+            <text class="sub" x="330" y="120" text-anchor="middle">×tiempo de parada</text>
+            <text class="sub" x="330" y="136" text-anchor="middle">set_minute → activas</text>
+            <text class="sub" x="330" y="152" text-anchor="middle">refresh_costs → costes</text></g>
+          <path class="edge" data-step="3" d="M405 114 H418"/>
+          <g class="node" data-step="3"><rect x="420" y="58" width="150" height="112" rx="14"/><text x="495" y="84" text-anchor="middle">Tramos de la noche</text>
+            <text class="sub" x="495" y="104" text-anchor="middle">parada → siguiente</text>
+            <text class="sub" x="495" y="120" text-anchor="middle">afectado: a ≤ 300 m</text>
+            <text class="sub" x="495" y="136" text-anchor="middle">de una zona activa</text>
+            <text class="sub" x="495" y="152" text-anchor="middle">muestra fija ≤ 3.000</text></g>
+          <path class="edge" data-step="4" d="M570 114 H583"/>
+          <g class="node" data-step="4"><rect x="585" y="58" width="150" height="112" rx="14"/><text x="660" y="84" text-anchor="middle">pgRouting × 2</text>
+            <text class="sub" x="660" y="104" text-anchor="middle">pgr_dijkstraCost</text>
+            <text class="sub" x="660" y="120" text-anchor="middle">red normal vs</text>
+            <text class="sub" x="660" y="136" text-anchor="middle">red con incidencia</text>
+            <text class="sub" x="660" y="152" text-anchor="middle">→ estado de cada tramo</text></g>
+          <!-- row 2 inside the branch (right → left) -->
+          <path class="edge" data-step="5" d="M660 170 V206"/>
+          <g class="node" data-step="5"><rect x="585" y="208" width="150" height="112" rx="14"/><text x="660" y="234" text-anchor="middle">Carga por ruta</text>
+            <text class="sub" x="660" y="254" text-anchor="middle">load_factor</text>
+            <text class="sub" x="660" y="270" text-anchor="middle">tramos afectados ×</text>
+            <text class="sub" x="660" y="286" text-anchor="middle">cuánto más tardan</text>
+            <text class="sub" x="660" y="302" text-anchor="middle">→ paradas fuera de hora</text></g>
+          <path class="edge" data-step="6" d="M585 264 H572"/>
+          <g class="node" data-step="6"><rect x="420" y="208" width="150" height="112" rx="14"/><text x="495" y="234" text-anchor="middle">Parámetros</text>
+            <text class="sub" x="495" y="254" text-anchor="middle">apply_params</text>
+            <text class="sub" x="495" y="270" text-anchor="middle">+60 % por ayudante</text>
+            <text class="sub" x="495" y="286" text-anchor="middle">impulso: solo trayecto</text>
+            <text class="sub" x="495" y="302" text-anchor="middle">recálculo ≈ 3 s</text></g>
+          <path class="edge" data-step="7" d="M420 264 H407"/>
+          <g class="node" data-step="7"><rect x="255" y="208" width="150" height="112" rx="14"/><text x="330" y="234" text-anchor="middle">Sugerencias</text>
+            <text class="sub" x="330" y="254" text-anchor="middle">desvíos · pgr_dijkstra</text>
+            <text class="sub" x="330" y="270" text-anchor="middle">recogida · DBSCAN</text>
+            <text class="sub" x="330" y="286" text-anchor="middle">refuerzo · niños 1.º</text>
+            <text class="sub" x="330" y="302" text-anchor="middle">orden · pgr_TSP</text></g>
+          <!-- 8 decide -->
+          <path class="edge" data-step="8" d="M330 320 C 330 352, 340 372, 368 372"/>
+          <g class="node" data-step="8"><rect x="370" y="350" width="380" height="58" rx="14"/><text x="560" y="374" text-anchor="middle">Decidir</text>
+            <text class="sub" x="560" y="394" text-anchor="middle">«Aplicar plan» → solo navidad_geo.applied_plan · o descartar</text></g>
+          <path class="edge merge" data-step="8" d="M370 396 C 236 396, 234 300, 222 160"/>
+          <text class="sub edge-lbl" data-step="8" x="252" y="358">applied_plan</text>
+          <!-- side note: plan without scenario -->
+          <g class="node side"><rect x="20" y="198" width="200" height="104" rx="14"/><text x="120" y="222" text-anchor="middle">Sin escenario</text>
+            <text class="sub" x="120" y="242" text-anchor="middle">plan de solo lectura</text>
+            <text class="sub" x="120" y="258" text-anchor="middle">en producción · sin rama</text>
+            <text class="sub" x="120" y="274" text-anchor="middle">sin pgRouting: ningún tramo</text>
+            <text class="sub" x="120" y="290" text-anchor="middle">tarde, cambia el fin de la noche</text></g>
+          <text class="sub edge-lbl on" x="20" y="452">tiempos medidos (DANA Valencia): rama 2,5 s · cómputo 1,4 s · rutas ≈ 7 s · parámetros 0,1 s · recálculo ≈ 3 s</text>
+          <circle class="token" r="6" cx="120" cy="58"/>
+        </svg>
+      </div>
+      <ol class="steps">
+        <li data-step="1"><b>Red de carreteras (producción)</b>OpenStreetMap → aristas <code>ways</code> y vértices <code>vertices</code>. Coste de cada arista = longitud ÷ velocidad nocturna de su tipo de vía (autovía 90, primaria 50, residencial 25 km/h…). Cada hogar se «engancha» al vértice más cercano de la componente conectada principal (<code>household_node</code>).</li>
+        <li data-step="2"><b>Escenario → zonas, en la rama</b>Cada zona es cerrada, más lenta (×vías principales / ×calles) o alarga la parada. <code>set_minute</code> activa las zonas (Barcelona: según el minuto) y <code>refresh_costs</code> recalcula las aristas que tocan: cerrada = −1 (pgRouting la ignora), si no, coste × factor.</li>
+        <li data-step="3"><b>Tramos de la noche</b>Cada ruta es una secuencia de paradas (<code>journeys_sync</code>): tramo = parada → siguiente. Afectado si la línea pasa a ≤ 300 m de una zona activa; inaccesible si el destino cae en una zona cerrada. Se enrutan como mucho 3.000 tramos afectados (muestra determinista).</li>
+        <li data-step="4"><b>pgRouting, dos veces</b><code>pgr_dijkstraCost</code> con los costes normales y con los de la incidencia. Por tramo: sin camino = <strong>sin ruta</strong> · &gt; normal × 1,5 + 60 s = <strong>desvío</strong> · &gt; normal × 1,05 = <strong>lento</strong> · si no, ok.</li>
+        <li data-step="5"><b>Carga por ruta</b>Cuánto más tarda la ruta (trayecto + parada) sobre la muestra, extrapolado a la parte afectada: <code>load_factor</code>. Si pasa de 1, las últimas paradas ya no caben en la noche.</li>
+        <li data-step="6"><b>Parámetros del planificador</b><code>apply_params</code>: cada ayudante (duende o paje) añade el 60 % de un portador y el impulso de renos / camellos acelera solo el trayecto (su peso se mide en esta simulación). Cambiarlos recalcula en la misma rama en ≈ 3 s.</li>
+        <li data-step="7"><b>Sugerencias</b>Desvíos de los 25 peores tramos (<code>pgr_dijkstra</code>, con su geometría) · puntos de recogida para los hogares sin acceso (agrupados con DBSCAN a 800 m) · refuerzo: ayudantes por ruta y las últimas paradas para ellos, niños primero · reordenar ≤ 120 paradas afectadas de la peor ruta con <code>pgr_TSP</code>.</li>
+        <li data-step="8"><b>Decidir</b>«Aplicar plan» copia las sugerencias a <code>navidad_geo.applied_plan</code>: lo único que se escribe en producción. O se descarta la rama (≈ 1 s) y no queda rastro.</li>
+      </ol>
+    </div>
+    <div class="grid2" style="margin-top:18px">
+      <div>
+        <h3 style="margin-top:0">Qué hace pgRouting</h3>
+        <p style="margin:4px 0 8px">Extensión de Postgres para <b>grafos de carreteras</b>: caminos mínimos, matrices de costes, rutas tipo viajante… sobre una tabla de aristas <code>(id, source, target, cost, reverse_cost)</code>. Coste negativo = arista que no se puede usar; <code>reverse_cost</code> = −1 en calles de sentido único.</p>
+        <table class="t wrap" style="table-layout:fixed;width:100%"><colgroup><col style="width:34%"><col style="width:66%"></colgroup>
+          <tr><th>Función</th><th>Para qué la usamos</th></tr>
+          <tr><td><code>pgr_strongComponents</code></td><td>Componente conectada principal de cada ciudad: los hogares se enganchan solo a vértices bien conectados</td></tr>
+          <tr><td><code>pgr_dijkstraCost</code></td><td>Tiempo de viaje de cada tramo de la muestra, con la red normal y con la incidencia (muchos pares a la vez)</td></tr>
+          <tr><td><code>pgr_dijkstra</code></td><td>El camino completo (las aristas) de los desvíos que se dibujan en el mapa</td></tr>
+          <tr><td><code>pgr_dijkstraCostMatrix</code> + <code>pgr_TSP</code></td><td>Matriz de tiempos entre las paradas afectadas de la peor ruta y su mejor orden (viajante), frente al orden actual</td></tr>
+        </table>
+        <p style="margin-top:8px;font-size:13px;color:var(--muted-2)">Todo con PostGIS al lado (<code>ST_Intersects</code>, distancias, <code>ST_ClusterDBSCAN</code>) y en SQL estándar: el algoritmo corre junto a los datos, en la base que ya usa el app.</p>
+      </div>
+      <div class="card"><b>Fórmulas</b>
+<pre style="margin-top:8px">ratio  = Σ(trayecto con incidencia + parada × factor)
+         ÷ Σ(trayecto normal + parada)   · tramos de la muestra
+carga  = 1 + (tramos afectados ÷ tramos de la ruta) × (ratio − 1)
+tarde  = (paradas − inaccesibles) × (1 − 1 ÷ carga)   · si carga &gt; 1
+
+parámetros (apply_params):
+carga' = carga × (1 − t + t ÷ impulso) ÷ (1 + 0,6 × ayudantes)
+         t = peso del trayecto en la noche (medido; DANA ≈ 0,62)
+refuerzo sugerido = ⌈carga'⌉ − 1 ayudantes por ruta
+
+sin escenario (sin rama):  carga = (1 − 0,62 + 0,62 ÷ impulso)
+         ÷ (1 + 0,6 × ayudantes) · fin = inicio + duración × carga</pre>
+        <b>Mensajes</b>
+        <ul style="margin:6px 0 0 18px">
+          <li><b>El algoritmo vive junto a los datos:</b> rutas, zonas y sugerencias en SQL dentro de Lakebase, sin exportar a otro motor.</li>
+          <li><b>La rama es el laboratorio:</b> escribe zonas y costes con su propio cómputo, sin tocar producción, y se descarta en un segundo.</li>
+          <li><b>Mismos datos que el app:</b> las rutas salen de las synced tables, así que la simulación y el mapa cuentan lo mismo.</li>
+          <li><b>Del what-if a la acción:</b> «Aplicar plan» escribe solo <code>applied_plan</code>. DANA Valencia (19.799 paradas): 1.719 fuera de la noche → 0 con +2 duendes ×1,20; solo ×1,10 → 1.424.</li>
+          <li><b>¿Rama o no?</b> Rama cuando la simulación escribe o pesa (what-if con pgRouting); sin rama para planes de solo lectura; en una noche en directo, rama nueva «desde ahora».</li>
+        </ul></div>
+    </div>
+  </div>
+  <div class="note-src"><h4>NOTAS · BRANCHING</h4><ul>
+    <li>Tono: «inspirado en»; DANA y Filomena tuvieron víctimas. Nada de chistes.</li>
+    <li>Mensaje agéntico: un agente que planifica rutas trabaja en su rama; si su plan es malo, se descarta sin riesgo.</li>
+    <li>Las rutas siguen una curva de Hilbert (vecino a vecino); aun así, con la incidencia pgr_TSP reordena las paradas afectadas (DANA: −46 %).</li>
+    <li>Pestaña 5: contar la lógica con ▶ (8 pasos); las cifras salen del código (<code>incidents.sql</code>, <code>apply_params</code>) y de la DANA medida.</li></ul></div>
+</section>
+
+<!-- ============================== B4 · AGÉNTICO ============================== -->
+<section class="block" id="b4" data-time="48–55'">
+  <div class="kicker">Bloque 6 · Desarrollo agéntico</div>
+  <h2>Un agente que construye sobre Lakebase</h2>
+  <p class="lead">Genie Code con skills: el agente lee el diccionario de datos, consulta Lakebase con SQL, crea tablas nuevas y modifica el app. Las ramas le dan un sitio seguro donde equivocarse.</p>
+  <div class="subtabs"><button class="subtab active" data-pane="0">Paso a paso</button><button class="subtab" data-pane="1">Detalle técnico</button><button class="subtab" data-pane="2">Demo en vivo <small>D4 · grabada de respaldo</small></button><button class="subtab" data-pane="3">Arquitectura <small>iteración 7</small></button><button class="subtab" data-pane="4">Rama → aprobación <small>animado</small></button></div>
+  <div class="pane active">
+    <div class="grid2">
+      <div class="diagram">
+        <svg viewBox="0 0 760 340" role="img" aria-label="Agente sobre Lakebase">
+          <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5a7480"/></marker></defs>
+          <g class="node" data-step="1"><rect x="20" y="120" width="180" height="100" rx="14"/><text x="110" y="160" text-anchor="middle">Petición</text><text class="sub" x="110" y="182" text-anchor="middle">«añade un KPI de</text><text class="sub" x="110" y="198" text-anchor="middle">hogares con niños por Rey»</text></g>
+          <g class="node" data-step="2"><rect x="260" y="40" width="220" height="90" rx="14"/><text x="370" y="75" text-anchor="middle">Genie Code + skill</text><text class="sub" x="370" y="97" text-anchor="middle">SKILL.md · diccionario · playbooks</text></g>
+          <path class="edge" data-step="2" d="M200 160 C 230 160, 230 85, 258 85"/>
+          <g class="node" data-step="3"><rect x="260" y="200" width="220" height="90" rx="14"/><text x="370" y="235" text-anchor="middle">Lakebase</text><text class="sub" x="370" y="257" text-anchor="middle">SQL · tablas nuevas · rama sandbox</text></g>
+          <path class="edge" data-step="3" d="M370 130 V198"/>
+          <g class="node" data-step="4"><rect x="540" y="120" width="200" height="100" rx="14"/><text x="640" y="160" text-anchor="middle">App</text><text class="sub" x="640" y="182" text-anchor="middle">endpoint + UI en español</text><text class="sub" x="640" y="198" text-anchor="middle">redespliegue en el sitio</text></g>
+          <path class="edge" data-step="4" d="M480 85 C 510 85, 510 160, 538 160"/>
+          <path class="edge" data-step="5" d="M640 222 C 640 300, 480 300, 482 262"/>
+          <text x="560" y="318" fill="#98A4AA" font-size="12">verifica desde el app y explica qué ha hecho</text>
+        </svg>
+      </div>
+      <ol class="steps">
+        <li data-step="1"><b>Petición en lenguaje natural</b>En español, desde Genie Code en el workspace.</li>
+        <li data-step="2"><b>La skill guía al agente</b>Nombres del workbench, diccionario, reglas («no escribas en *_sync») y playbooks.</li>
+        <li data-step="3"><b>Lakebase como herramienta</b>SQL para explorar, tablas o vistas nuevas con GRANT al SP, y ramas para probar sin riesgo.</li>
+        <li data-step="4"><b>Cambia el app</b>Nuevo endpoint y UI; redespliega el mismo app.</li>
+        <li data-step="5"><b>Verifica</b>Lo comprueba desde el app y resume el cambio.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="pane">
+    <div class="grid2">
+      <table class="t">
+        <tr><th>Patrón agéntico</th><th>Por qué Lakebase</th></tr>
+        <tr><td>Estado y memoria</td><td>Postgres transaccional: conversaciones, planes y pasos del agente, con baja latencia</td></tr>
+        <tr><td>Contexto del lakehouse</td><td>Synced tables: el agente consulta en Postgres los datos gobernados de UC</td></tr>
+        <tr><td>Recuperación</td><td>pgvector / Lakebase Search (vectorial + BM25 + híbrida) en la misma base</td></tr>
+        <tr><td>Sandbox</td><td>Una rama por ejecución o por agente: aislada, instantánea, desechable</td></tr>
+        <tr><td>Auditoría</td><td>CDF lleva lo que hizo el agente de vuelta a Delta para analítica</td></tr>
+        <tr><td>Muchas BDs pequeñas</td><td>Scale-to-zero: una por agente, tenant o entorno, sin coste 24/7</td></tr>
+      </table>
+      <div class="card"><b>Skills del repo</b>
+        <p style="margin-top:6px"><code>navidad-hack-infra</code> monta el workbench. <code>navidad-hack-build-assistant</code> construye encima: rutas con PostGIS, segmentación, incidencias. Se instalan con el notebook <code>02_instalar_skills</code>.</p>
+        <h3>Documentación</h3><ul style="margin:6px 0 0 18px">
+          <li><a href="https://docs.databricks.com/aws/en/oltp/projects/" target="_blank">Lakebase</a></li>
+          <li><a href="https://docs.databricks.com/aws/en/release-notes/lakebase/" target="_blank">Lakebase Search (release notes)</a></li></ul></div>
+    </div>
+  </div>
+  <div class="pane">
+    <div class="demo">
+      <div class="dstep"><input type="checkbox" /><div><b>Ejecuta <code>02_instalar_skills</code></b>.<div class="ok"><code>instalada: …/.assistant/skills/navidad-hack-build-assistant</code></div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Genie Code</b> → «Ayúdame a construir sobre el Taller de Navidad».<div class="ok">resumen de los datos (campañas, noches, ciudades) y «Suggested tracks include:»</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Petición</b>: <pre><button class="copy">copiar</button>Añade al app un KPI de hogares con niños por Rey en la noche de Reyes de Valencia</pre><div class="ok">el agente consulta <code>people_sync</code> + <code>journeys_sync</code>, propone una vista, añade un endpoint y redespliega</div><div class="planb">reproducir la grabación (plan-b/d4)</div></div></div>
+    </div>
+  </div>
+    <div class="pane">
+    <div class="arch compact" data-from="7" data-to="7" data-start="7"></div>
+  </div>
+  <div class="pane flow-pane">
+    <div class="grid2">
+      <div class="diagram flow">
+        <div class="flow-bar"><button class="flow-play" type="button">▶ Reproducir</button><span>o → / clic en cada paso</span></div>
+        <svg viewBox="0 0 760 400" role="img" aria-label="Desarrollo con rama: rama dev, pruebas, aprobación y migración a production">
+          <defs><marker id="arrowF" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5a7480"/></marker></defs>
+          <!-- lanes -->
+          <text class="lane-lbl" x="18" y="52">production</text>
+          <path class="lane prod" d="M20 70 H740"/>
+          <text class="lane-lbl dev" x="200" y="200">rama dev-kpi-ninos-edad-1114-0837</text>
+          <path class="lane dev" d="M200 250 H520"/>
+          <!-- 1 request -->
+          <path class="edge" data-step="2" d="M170 337 C 186 337, 186 262, 198 258"/>
+          <g class="node" data-step="1"><rect x="20" y="300" width="150" height="74" rx="14"/><text x="95" y="330" text-anchor="middle">Petición</text><text class="sub" x="95" y="350" text-anchor="middle">«añade un KPI…»</text></g>
+          <!-- 2 fork -->
+          <path class="edge fork" data-step="2" d="M120 72 C 120 160, 150 250, 200 250"/>
+          <g class="node" data-step="2"><rect x="200" y="215" width="130" height="70" rx="14"/><text x="265" y="243" text-anchor="middle">Rama dev</text><text class="sub" x="265" y="262" text-anchor="middle">copy-on-write · 3 s</text><text class="sub" x="265" y="276" text-anchor="middle">TTL 24 h</text></g>
+          <!-- 3 migration on branch -->
+          <path class="edge" data-step="3" d="M330 250 H358"/>
+          <g class="node" data-step="3"><rect x="360" y="215" width="140" height="70" rx="14"/><text x="430" y="243" text-anchor="middle">Migración</text><text class="sub" x="430" y="262" text-anchor="middle">001_kpi_….sql</text><text class="sub" x="430" y="276" text-anchor="middle">idempotente · 1,7 s</text></g>
+          <!-- 4 tests -->
+          <path class="edge" data-step="4" d="M500 250 H528"/>
+          <g class="node" data-step="4"><rect x="530" y="200" width="210" height="100" rx="14"/><text x="635" y="224" text-anchor="middle">Pruebas en la rama</text>
+            <text class="sub chk" x="545" y="244">✓ objetos · *_sync intactas</text><text class="sub chk" x="545" y="260">✓ 24.092 niños = conteo directo</text>
+            <text class="sub chk" x="545" y="276">✓ endpoint 0,36 s · GRANT al SP</text><text class="sub chk" x="545" y="292">✓ re-ejecución sin cambios</text></g>
+          <!-- 5 approval -->
+          <path class="edge" data-step="5" d="M635 200 V178"/>
+          <g class="node" data-step="5"><path class="shape" d="M635 102 L725 141 L635 180 L545 141 Z"/><text x="635" y="138" text-anchor="middle">¿Migro?</text><text class="sub" x="635" y="154" text-anchor="middle">sí / ajustar / descartar</text></g>
+          <path class="edge loop" data-step="5" d="M545 141 C 470 141, 430 170, 430 213"/><text class="sub edge-lbl" data-step="5" x="450" y="152">ajustar</text>
+          <text class="sub edge-lbl" data-step="5" x="635" y="318" text-anchor="middle">descartar → rama borrada, production intacta</text>
+          <!-- 6 migrate to production -->
+          <path class="edge merge" data-step="6" d="M635 102 V72"/>
+          <g class="node" data-step="6"><rect x="355" y="20" width="245" height="40" rx="12"/><text x="477" y="45" text-anchor="middle">Misma migración · 1 transacción</text></g>
+          <text class="sub edge-lbl" data-step="6" x="320" y="92">punto de restauración (PITR) antes · re-check después</text>
+          <!-- 7 deploy -->
+          <g class="node" data-step="7"><rect x="610" y="20" width="130" height="40" rx="12"/><text x="675" y="45" text-anchor="middle">Deploy del app</text></g>
+          <text class="sub edge-lbl" data-step="7" x="675" y="12" text-anchor="middle">+ rama dev borrada</text>
+          <circle class="token" r="6" cx="95" cy="300"/>
+        </svg>
+      </div>
+      <ol class="steps">
+        <li data-step="1"><b>Petición</b>Una funcionalidad nueva, en lenguaje natural, desde Genie Code.</li>
+        <li data-step="2"><b>Rama dev</b>Hija de <code>production</code>: instantánea, con su propio cómputo y TTL de 24 h. Production no se toca.</li>
+        <li data-step="3"><b>Migración como script</b><code>migrations/NNN_….sql</code> idempotente; se ejecuta el fichero en la rama, y es exactamente lo que se aplicará después.</li>
+        <li data-step="4"><b>Pruebas en la rama</b>Objetos, cuadre de datos, SQL real del endpoint con tiempos, GRANT al SP, <code>*_sync</code> intactas, re-ejecución.</li>
+        <li data-step="5"><b>Resultados y aprobación</b>El agente enseña la tabla de pruebas y pregunta. Sin un «sí» explícito no sigue. «Ajustar» vuelve a la rama; «descartar» la borra.</li>
+        <li data-step="6"><b>Migración a production</b>No hay merge de ramas: se reproduce el script probado en una transacción, con punto de restauración antes y comprobación después.</li>
+        <li data-step="7"><b>Deploy y limpieza</b>El app se redespliega solo cuando los objetos ya existen en production; la rama dev se borra.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="note-src"><h4>NOTAS · AGÉNTICO</h4><ul>
+    <li>No prometer servidores MCP gestionados ni la Data API como «herramienta de agente» sin fuente pública.</li>
+    <li>El valor: el agente usa SQL estándar y la rama le da un sitio seguro donde equivocarse.</li>
+    <li>Si Genie tarda, pasar a la grabación sin esperar.</li></ul></div>
+</section>
+
+<!-- ============================== B7 · GRINCH ============================== -->
+<section class="block" id="grinch" data-time="opcional · +8–10'">
+  <div class="kicker">Bloque 7 · El Grinch ataca (opcional)</div>
+  <h2>Error humano o Grinch: <em style="color:var(--lava);font-style:normal">recuperar en segundos</em></h2>
+  <p class="lead"><button type="button" class="themebtn" id="grinchBtn" style="float:right;margin:4px 0 0 16px">😈 Soltar al Grinch (G)</button>La noche de Reyes, alguien borra el 80 % de las cartas y cambia el resto a carbón. Son datos operacionales: solo viven en Lakebase. Snapshot, rama desde un momento pasado y recuperación, sin parar el app.</p>
+  <div class="subtabs"><button class="subtab active" data-pane="0">Paso a paso</button><button class="subtab" data-pane="1">Detalle técnico</button><button class="subtab" data-pane="2">Demo en vivo <small>notebook 03</small></button><button class="subtab" data-pane="3">Arquitectura <small>iteración 8</small></button></div>
+  <div class="pane active">
+    <div class="grid2">
+      <div class="diagram">
+        <svg viewBox="0 0 760 360" role="img" aria-label="Línea de tiempo del Grinch">
+          <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5a7480"/></marker></defs>
+          <path class="edge" d="M30 120 H735"/>
+          <g class="node" data-step="1"><circle cx="70" cy="120" r="16"/><text x="70" y="72" text-anchor="middle">cartas</text><text class="sub" x="70" y="94" text-anchor="middle">38.403 · 26.696 hogares</text></g>
+          <g class="node" data-step="2"><circle cx="210" cy="120" r="16"/><text x="210" y="72" text-anchor="middle">snapshot</text><text class="sub" x="210" y="94" text-anchor="middle">0,6 s · inmutable</text></g>
+          <g class="node" data-step="3"><circle cx="350" cy="120" r="20"/><text x="350" y="64" text-anchor="middle">😈 Grinch</text><text class="sub" x="350" y="86" text-anchor="middle">−30.839 · resto a carbón</text></g>
+          <g class="node" data-step="4"><rect x="410" y="200" width="170" height="70" rx="12"/><text x="495" y="230" text-anchor="middle">rama PITR</text><text class="sub" x="495" y="251" text-anchor="middle">estado del momento seguro · 5 s</text></g>
+          <path class="edge" data-step="4" d="M278 124 C 278 230, 340 235, 408 235"/>
+          <g class="node" data-step="5"><circle cx="630" cy="120" r="16"/><text x="630" y="72" text-anchor="middle">recuperado</text><text class="sub" x="630" y="94" text-anchor="middle">37.280 filas · 0,3 s</text></g>
+          <path class="edge" data-step="5" d="M582 235 C 615 232, 630 200, 630 140"/>
+          <g class="node" data-step="6"><rect x="410" y="290" width="330" height="56" rx="12"/><text x="575" y="314" text-anchor="middle">o restauración completa desde el snapshot</text><text class="sub" x="575" y="334" text-anchor="middle">nueva rama raíz · 2,7 s · repuntar el app</text></g>
+          <path class="edge" data-step="6" d="M210 138 C 210 320, 330 318, 408 318"/>
+          <line x1="278" y1="108" x2="278" y2="132" stroke="#FF6B4A" stroke-width="2" stroke-dasharray="3 3"/><text x="284" y="190" fill="#98A4AA" font-size="11">momento seguro</text>
+        </svg>
+      </div>
+      <ol class="steps">
+        <li data-step="1"><b>Datos que solo viven en Lakebase</b>Cartas a los Reyes escritas por el app (no vienen del lakehouse).</li>
+        <li data-step="2"><b>Backup antes de la noche</b>Snapshot manual instantáneo; mejor aún, un horario automático.</li>
+        <li data-step="3"><b>El Grinch (o un error humano)</b><code>DELETE</code> del 80 % y <code>UPDATE</code> a carbón del resto.</li>
+        <li data-step="4"><b>Investigar sin tocar producción</b>Rama desde el momento seguro: copy-on-write del historial.</li>
+        <li data-step="5"><b>Recuperar lo dañado</b>Copiar las filas de la rama a producción en una transacción; el app sigue igual.</li>
+        <li data-step="6"><b>Plan B: restauración completa</b>Desde el snapshot o PITR: nueva rama raíz y repuntar el app.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="pane">
+    <div class="grid2">
+      <table class="t">
+        <tr><th>Herramienta</th><th>Qué hay que saber (docs públicas, verificar antes de la sesión)</th></tr>
+        <tr><td>Ventana de restauración</td><td>De 2 a 30 días (7 por defecto) de historial de las ramas raíz: PITR, consultas en el pasado y ramas desde el pasado</td></tr>
+        <tr><td>Rama desde el pasado</td><td>«Branch data and schema from a past point in time»: rama hija en segundos. Usa el último commit anterior al instante pedido</td></tr>
+        <tr><td>Point-in-time restore</td><td>Crea una <b>nueva rama raíz</b>; la original sigue funcionando. Para usarla, se repunta el app. Máximo <b>3 ramas raíz</b> por proyecto</td></tr>
+        <tr><td>Snapshots</td><td>Instantáneos, inmutables, con caducidad; solo de ramas raíz. 10 manuales por proyecto, sin límite para los programados. Sin restauración «in place»: se restauran creando una rama</td></tr>
+        <tr><td>Horario de snapshots</td><td>Una lista de cadencias por rama raíz (UI, SDK, CLI, Terraform, DAB). Almacenamiento de snapshots facturable desde 1-jun-2026</td></tr>
+        <tr><td>Prevención</td><td>Mínimo privilegio (el SP del app sin <code>DELETE</code>), rama <code>production</code> protegida, horario de snapshots, ventana más larga</td></tr>
+        <tr><td>Synced tables</td><td>Lo que viene del lakehouse se puede volver a sincronizar desde UC: la fuente de verdad sigue en Delta</td></tr>
+      </table>
+      <div class="card"><b>Documentación</b><ul style="margin:8px 0 0 18px">
+        <li><a href="https://docs.databricks.com/aws/en/oltp/projects/point-in-time-restore" target="_blank">Point-in-time restore</a></li>
+        <li><a href="https://docs.databricks.com/aws/en/oltp/projects/snapshots" target="_blank">Snapshots y horarios</a></li>
+        <li><a href="https://docs.databricks.com/aws/en/oltp/projects/manage-branches" target="_blank">Ramas desde el pasado · reset from parent</a></li></ul>
+        <h3>CLI equivalente</h3><pre><button class="copy">copiar</button>databricks postgres create-snapshot projects/navidad-&lt;slug&gt; antes-del-grinch \
+  --json '{"spec":{"source_branch":"projects/navidad-&lt;slug&gt;/branches/production","ttl":"14400s"}}'
+databricks postgres create-branch projects/navidad-&lt;slug&gt; grinch-pitr \
+  --json '{"spec":{"source_branch":"projects/navidad-&lt;slug&gt;/branches/production",
+           "source_branch_time":"2026-11-16T10:40:00Z","ttl":"14400s"}}'</pre></div>
+    </div>
+  </div>
+  <div class="pane">
+    <div class="demo">
+      <div class="dstep"><input type="checkbox" /><div><b>Abre <code>workshop/notebooks/03_grinch</code></b>, con el sufijo de tu workbench y <code>full_restore</code> = sí si hay tiempo. Ejecuta celda a celda.<div class="ok">≈ 1 min en total; deja las ramas y el snapshot borrados al final</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Paso 1–2:</b> cartas y snapshot.<div class="ok">≈ 288.000 cartas a 0,75 (≈ 38.000 a 0,1) · snapshot en &lt; 1 s · «Horario de snapshots: NINGUNO ⚠» (decirlo en voz alta)</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Paso 3: el Grinch.</b><div class="ok">a 0,75: ≈ 57.400 cartas, todas con carbón (se han borrado ≈ 231.000)</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Paso 4:</b> rama desde el momento seguro. Enséñala en Lakebase → Branches.<div class="ok">misma huella que antes del Grinch · rama en ≈ 2–5 s</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Paso 5:</b> recuperar.<div class="ok">a 0,75: ≈ 280.000 filas en ≈ 5 s · «Producción vuelve a estar exactamente como antes del Grinch»</div><div class="planb">si falta tiempo: enseñar la salida del ensayo (74 s en total a 0,75)</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Paso 6–7 (opcional):</b> restauración completa desde el snapshot y prevención.<div class="ok">rama raíz en ≈ 3 s · «¿El SP del app puede borrar cartas? no ✓» · ventana 604800 s (7 días)</div></div></div>
+    </div>
+  </div>
+  <div class="pane">
+    <div class="arch compact" data-from="8" data-to="8" data-start="8"></div>
+  </div>
+  <div class="note-src"><h4>NOTAS · GRINCH (OPCIONAL)</h4><ul>
+    <li>Solo si sobra tiempo o como cierre alternativo; dura 8–10 min.</li>
+    <li>Mensaje: «el error humano no es un si, es un cuándo: con Lakebase, investigar y recuperar cuesta segundos y no para el app».</li>
+    <li>Recalcar que no había horario de snapshots: es la recomendación nº 1 a cliente.</li>
+    <li>Cifras del ensayo del 13-nov a escala 0,75 (s75): 74 s en total.</li></ul></div>
+</section>
+
+<!-- ============================== B8 · BÚSQUEDA ============================== -->
+<section class="block" id="busqueda" data-time="opcional · +5'">
+  <div class="kicker">Bloque 8 · Búsqueda (opcional)</div>
+  <h2>Buscar familias y duendes con <em style="color:var(--lava);font-style:normal">Lakebase Search</em></h2>
+  <p class="lead">Una barra de búsqueda en todas las páginas del app. BM25 en la misma base Postgres que ya sirve el app: sin motor de búsqueda aparte, sin copiar datos fuera. Una familia lleva a su casa en el mapa y a su histórico de visitas; un duende o un paje, al recorrido que hizo.</p>
+  <div class="subtabs"><button class="subtab active" data-pane="0">Paso a paso <small>animado</small></button><button class="subtab" data-pane="1">Detalle técnico</button><button class="subtab" data-pane="2">Demo en vivo <small>notebook 08</small></button></div>
+  <div class="pane active flow-pane">
+    <div class="grid2">
+      <div class="diagram flow">
+        <div class="flow-bar"><button class="flow-play" type="button">▶ Reproducir</button><span>o → / clic en cada paso</span></div>
+        <svg viewBox="0 0 760 430" role="img" aria-label="Lakebase Search: documentos desde las synced tables, índice BM25, consulta en la réplica y resultado en el mapa"
+             data-pos='{"1":[125,40],"2":[380,40],"3":[635,40],"4":[635,170],"5":[380,170],"6":[125,170],"7":[30,350]}'>
+          <defs><marker id="arrowBq" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5a7480"/></marker></defs>
+          <text class="lane-lbl dev" x="20" y="28">PREPARAR (notebook 08)</text>
+          <text class="lane-lbl" x="20" y="160">BUSCAR (app)</text>
+          <!-- row 1: prepare -->
+          <g class="node" data-step="1"><rect x="20" y="40" width="210" height="88" rx="14"/><text x="125" y="66" text-anchor="middle">Activar Lakebase Search</text>
+            <text class="sub" x="125" y="86" text-anchor="middle">Proyecto → Settings</text><text class="sub" x="125" y="102" text-anchor="middle">extensión lakebase_text (BM25)</text>
+            <text class="sub" x="125" y="118" text-anchor="middle">irreversible · reinicia cómputos</text></g>
+          <path class="edge" data-step="2" d="M230 84 H273"/>
+          <g class="node" data-step="2"><rect x="275" y="40" width="210" height="88" rx="14"/><text x="380" y="66" text-anchor="middle">Documentos</text>
+            <text class="sub" x="380" y="86" text-anchor="middle">desde las synced tables</text><text class="sub" x="380" y="102" text-anchor="middle">500.000 familias</text>
+            <text class="sub" x="380" y="118" text-anchor="middle">364 equipos de duendes y pajes</text></g>
+          <path class="edge" data-step="3" d="M485 84 H528"/>
+          <g class="node" data-step="3"><rect x="530" y="40" width="210" height="88" rx="14"/><text x="635" y="66" text-anchor="middle">Analizador</text>
+            <text class="sub" x="635" y="86" text-anchor="middle">tsvector 'simple'</text><text class="sub" x="635" y="102" text-anchor="middle">lower(unaccent(texto))</text>
+            <text class="sub" x="635" y="118" text-anchor="middle">sin tablas de stop words</text></g>
+          <path class="edge" data-step="4" d="M635 128 V168"/>
+          <!-- row 2: search -->
+          <g class="node" data-step="4"><rect x="530" y="170" width="210" height="88" rx="14"/><text x="635" y="196" text-anchor="middle">Índices</text>
+            <text class="sub" x="635" y="216" text-anchor="middle">lakebase_bm25 · 3,1 s</text><text class="sub" x="635" y="232" text-anchor="middle">estadísticas al construir</text>
+            <text class="sub" x="635" y="248" text-anchor="middle">+ GIN para prefijos</text></g>
+          <path class="edge" data-step="5" d="M530 214 H487"/>
+          <g class="node" data-step="5"><rect x="275" y="170" width="210" height="88" rx="14"/><text x="380" y="196" text-anchor="middle">Consulta</text>
+            <text class="sub" x="380" y="216" text-anchor="middle">BM25: 2,7 ms</text><text class="sub" x="380" y="232" text-anchor="middle">prefijos (GIN): ~31 ms</text>
+            <text class="sub" x="380" y="248" text-anchor="middle">fusión RRF de las dos listas</text></g>
+          <path class="edge" data-step="6" d="M275 214 H232"/>
+          <g class="node" data-step="6"><rect x="20" y="170" width="210" height="88" rx="14"/><text x="125" y="196" text-anchor="middle">Réplica de lectura</text>
+            <text class="sub" x="125" y="216" text-anchor="middle">el app busca en READ_ONLY</text><text class="sub" x="125" y="232" text-anchor="middle">'simple' funciona en réplica</text>
+            <text class="sub" x="125" y="248" text-anchor="middle">escrituras: en el primario</text></g>
+          <path class="edge" data-step="7" d="M125 258 V296"/>
+          <!-- result -->
+          <g class="node res" data-step="7"><rect x="20" y="298" width="720" height="104" rx="12"/>
+            <text x="40" y="322">Resultado en el mapa (primera pestaña, «Mapa de rutas»)</text>
+            <text class="sub chk" x="40" y="344">✓ familia → su casa en el mapa + histórico de visitas (años · noches · portador · hora · equipo) + estado esta noche</text>
+            <text class="sub chk" x="40" y="364">✓ duende / paje → su recorrido en orden (inicio verde · final rojo) con paradas y horas</text>
+            <text class="sub chk" x="40" y="384">✓ sin Lakebase Search, la misma tabla funciona con el full-text de Postgres (GIN)</text></g>
+          <circle class="token" r="6" cx="125" cy="40"/>
+        </svg>
+      </div>
+      <ol class="steps">
+        <li data-step="1"><b>Activar Lakebase Search</b>En el proyecto: Settings → Lakebase Search. Instala <code>lakebase_text</code> (BM25). Es irreversible y reinicia los cómputos del proyecto: hacerlo antes de la sesión. Sin activarlo, <code>CREATE EXTENSION lakebase_text</code> falla («must be loaded via shared_preload_libraries»).</li>
+        <li data-step="2"><b>Documentos desde las synced tables</b>Tabla <code>navidad_search.doc</code>: 500.000 familias (nombre, ciudad y nombres de quienes viven allí) y 364 equipos de duendes y pajes, con los mismos nombres que el centro de control (4 por ruta). Carga: familias 26–48 s, equipos 11–13 s.</li>
+        <li data-step="3"><b>Analizador simple y sin acentos</b><code>to_tsvector('simple', lower(unaccent(texto)))</code>: «García» y «garcia» son lo mismo. Sin tablas de stop words ni sinónimos, para que funcione también en la réplica.</li>
+        <li data-step="4"><b>Índices</b><code>lakebase_bm25</code> (3,1 s) calcula las estadísticas del corpus al construirse: se reconstruye después de cargar. Un índice GIN da los prefijos para buscar mientras se escribe.</li>
+        <li data-step="5"><b>Consulta</b>BM25 ordena en 2,7 ms en el servidor; los prefijos (GIN, sin ordenar) tardan ~31 ms — ordenarlos todos costaría ~146 ms, por eso ordena BM25. Las dos listas se funden con RRF.</li>
+        <li data-step="6"><b>Leído en la réplica</b>El app busca en la réplica de lectura (bloque 4) y escribe en el primario. El analizador 'simple' evita el fallo de las tablas de stop words en réplicas.</li>
+        <li data-step="7"><b>Resultado en el mapa</b>En la barra (tecla «/») o en una sugerencia: una familia abre «Mapa de rutas» con su casa y su histórico; un duende o un paje, su recorrido.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="pane">
+    <div class="grid2">
+      <div>
+        <h3 style="margin-top:0">Lakebase Search frente al full-text de Postgres</h3>
+        <table class="t wrap" style="table-layout:fixed;width:100%"><colgroup><col style="width:26%"><col style="width:37%"><col style="width:37%"></colgroup>
+          <tr><th>Aspecto</th><th>Lakebase Search (BM25)</th><th>Postgres full-text (GIN)</th></tr>
+          <tr><td>Ranking</td><td>BM25 con estadísticas del corpus</td><td><code>ts_rank</code> sobre cada coincidencia</td></tr>
+          <tr><td>Tiempo (500.000 docs)</td><td>2,7 ms en el servidor</td><td>~146 ms ordenando prefijos; ~31 ms sin ordenar</td></tr>
+          <tr><td>Activación</td><td>Proyecto → Settings → Lakebase Search (irreversible, reinicia cómputos)</td><td>Ninguna</td></tr>
+          <tr><td>En el taller</td><td>Ordena los resultados</td><td>Prefijos para buscar mientras se escribe, y respaldo si Search no está activado</td></tr>
+        </table>
+        <h3>Ojo con las réplicas</h3>
+        <p style="margin:4px 0 0">Las tablas de stop words o sinónimos de <code>lakebase_tokenizer</code> asignan un identificador de transacción y fallan en una réplica de lectura. Por eso el analizador es <code>'simple'</code> con <code>unaccent</code>: BM25 se sirve desde la réplica sin problema.</p>
+        <h3>Siguiente paso (idea, no construido)</h3>
+        <p style="margin:4px 0 0">Búsqueda híbrida con vectores (<code>lakebase_vector</code>) en la misma tabla: «familias con niños pequeños cerca del puerto» por significado, no solo por palabras.</p>
+      </div>
+      <div class="card"><b>Activar y crear el índice</b>
+<pre style="margin-top:8px">CREATE EXTENSION IF NOT EXISTS lakebase_text CASCADE;
+CREATE EXTENSION IF NOT EXISTS unaccent;
+
+-- después de cargar los documentos
+CREATE INDEX doc_bm25 ON navidad_search.doc
+  USING lakebase_bm25 (search_vector)
+  WITH (default_limit = 50);</pre>
+        <b>Buscar (BM25)</b>
+<pre style="margin-top:8px">SELECT doc_id, kind, title, subtitle
+FROM navidad_search.doc
+ORDER BY search_vector &lt;@&gt; to_bm25query(
+           to_tsvector('simple', 'garcia ortega'),
+           'navidad_search.doc_bm25')
+LIMIT 24;</pre>
+        <b>Prefijos (mientras se escribe)</b>
+<pre style="margin-top:8px">SELECT doc_id FROM navidad_search.doc
+WHERE search_vector @@ to_tsquery('simple', 'gar:*')
+LIMIT 24;</pre>
+        <h3>Documentación</h3><ul style="margin:6px 0 0 18px">
+          <li><a href="https://docs.databricks.com/aws/en/oltp/projects/" target="_blank">Lakebase: proyectos y extensiones</a></li></ul></div>
+    </div>
+  </div>
+  <div class="pane">
+    <div class="demo">
+      <div class="dstep"><input type="checkbox" /><div><b>Lakebase</b> → proyecto → Settings → <b>Lakebase Search</b>: ya activado.<div class="ok">activado antes de la sesión: es irreversible y reinicia los cómputos</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Notebook <code>08_busqueda</code></b> → <i>Run all</i>.<div class="ok">500.000 familias + 364 equipos indexados · índice BM25 en ~3 s</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>En el app</b>, pulsa «/» y elige una sugerencia.<div class="ok">«Lakebase Search · BM25 · N ms» al pie de la lista</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div>Busca <b>«garcia ortega»</b> y elige una familia.<div class="ok">«Mapa de rutas» con su casa marcada y su histórico de visitas (años, noches, portador, equipo)</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div>Busca <b>«duende pinito»</b>.<div class="ok">su recorrido en el mapa: inicio verde, final rojo, paradas y horas</div><div class="planb">captura de pantalla si el app no responde</div></div></div>
+    </div>
+  </div>
+  <div class="note-src"><h4>NOTAS · BÚSQUEDA</h4><ul>
+    <li>Activar Lakebase Search antes de empezar: es irreversible y reinicia los cómputos del proyecto.</li>
+    <li>Mensaje: la búsqueda vive en la misma base que el app, sin otro motor ni copias; BM25 en 2,7 ms.</li>
+    <li>Si preguntan por semántica: la idea es híbrida con <code>lakebase_vector</code> en la misma tabla (no construido).</li></ul></div>
+</section>
+
+<!-- ============================== B5 · CIERRE ============================== -->
+<section class="block" id="b5" data-time="55–59'">
+  <div class="kicker">Cierre</div>
+  <h2>Por qué Lakebase para aplicaciones agénticas</h2>
+  <div class="subtabs"><button class="subtab active" data-pane="0">Diferenciadores</button><button class="subtab" data-pane="1">Llevarlo a cliente</button><button class="subtab" data-pane="2">Demo final <small>el app de D1</small></button><button class="subtab" data-pane="3">Arquitectura <small>objetivo final</small></button></div>
+  <div class="pane active">
+    <div class="grid3">
+      <div class="card hl"><span class="pill">1</span><b>Una rama por agente</b><p>Copy-on-write, en segundos, con su cómputo. Probar sin miedo.</p></div>
+      <div class="card"><span class="pill">2</span><b>Scale-to-zero</b><p>Muchas bases pequeñas sin pagar 24/7.</p></div>
+      <div class="card"><span class="pill">3</span><b>Postgres de verdad</b><p>PostGIS, pgRouting, pgvector, Search: herramientas que el agente ya sabe usar.</p></div>
+      <div class="card"><span class="pill teal">4</span><b>Lakehouse ↔ operacional</b><p>Synced tables y CDF, sin ETL a mano.</p></div>
+      <div class="card"><span class="pill teal">5</span><b>Gobierno de plataforma</b><p>UC, OAuth del app, AI Gateway: todo en un workspace.</p></div>
+      <div class="card"><span class="pill green">→</span><b>Próximo paso</b><p>Repetir el Run all con un cliente y cambiar el dominio de los datos.</p></div>
+    </div>
+  </div>
+  <div class="pane">
+    <div class="grid2">
+      <div class="card"><b>Dónde buscar oportunidades</b><ul style="margin:8px 0 0 18px">
+        <li>Apps sobre datos del lakehouse que hoy copian a un Postgres externo</li>
+        <li>Agentes que necesitan estado, memoria o búsqueda híbrida</li>
+        <li>Entornos de pruebas y what-if (ramas en vez de copias de BD)</li>
+        <li>Logística, utilities o retail con datos geoespaciales (PostGIS / pgRouting)</li></ul></div>
+      <div class="card"><b>Recursos</b><ul style="margin:8px 0 0 18px">
+        <li>El material del taller: <code>navidad-workshop.zip</code> y README</li>
+        <li><a href="https://community.databricks.com/t5/lakebase-hub/ct-p/LakebasePostgres" target="_blank">Lakebase Hub (Databricks Community)</a></li>
+        <li><a href="https://docs.databricks.com/aws/en/oltp/projects/" target="_blank">Documentación de Lakebase</a></li>
+        <li>Limpieza: notebook <code>99_limpieza</code></li></ul></div>
+    </div>
+  </div>
+  <div class="pane">
+    <div class="demo">
+      <div class="dstep"><input type="checkbox" /><div><b>Vuelve al notebook <code>00_workbench</code></b>.<div class="ok">«Taller de Navidad listo en N min», con el enlace al app y a <code>/planner</code></div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Abre el app</b> → Planificador → DANA → Simular en rama.<div class="ok">lo mismo que en D3, ahora en tu workspace (escala 0,1: ≈ 240 hogares sin acceso, ≈ 190 paradas tarde, simulación ≈ 3 s)</div></div></div>
+      <div class="dstep"><input type="checkbox" /><div><b>Al terminar</b>: <code>99_limpieza</code> con <code>BORRAR</code>.</div></div>
+    </div>
+  </div>
+    <div class="pane">
+    <div class="arch compact" data-from="9" data-to="9" data-start="9"></div>
+  </div>
+  <div class="note-src"><h4>NOTAS · CIERRE</h4><ul>
+    <li>Volver a la pregunta inicial: «¿sabéis explicar Lakebase en 1 minuto?». Que alguien lo haga.</li>
+    <li>CTA: Lakebase Hub; ofrecer una sesión con un caso de su cliente.</li></ul></div>
+</section>
+
+
+<!-- ============================== GLOSARIO ============================== -->
+<section class="block" id="glos" data-time="referencia">
+  <div class="kicker">Glosario</div>
+  <h2>Términos del workshop</h2>
+  <table class="t" style="margin-top:12px">
+    <tr><th>Término</th><th>Definición</th></tr>
+    <tr><td>Proyecto</td><td>Contenedor de Lakebase Autoscaling: ramas, cómputos, bases y roles. Al crearlo nacen la rama <code>production</code> y su cómputo <code>primary</code></td></tr>
+    <tr><td>Rama (branch)</td><td>Entorno de base de datos aislado que comparte el almacenamiento con su padre (copy-on-write). Con TTL o permanente</td></tr>
+    <tr><td>Cómputo / endpoint</td><td>Postgres que sirve una rama: lectura-escritura o solo lectura (réplica). Escala en CU</td></tr>
+    <tr><td>CU</td><td>Compute Unit ≈ 2 GB de RAM. Autoscaling 0,5–64 CU</td></tr>
+    <tr><td>Scale-to-zero</td><td>El cómputo se suspende sin uso y reanuda en cientos de ms</td></tr>
+    <tr><td>Synced table</td><td>Tabla Delta de UC replicada en Postgres (snapshot, triggered o continuous). Solo lectura en Postgres</td></tr>
+    <tr><td>CDF (Lakebase)</td><td>Cambios de Postgres de vuelta a Delta (Public Preview)</td></tr>
+    <tr><td>Lakebase Search</td><td>Búsqueda vectorial (<code>lakebase_ann</code>), BM25 (<code>lakebase_bm25</code>) e híbrida dentro de Postgres</td></tr>
+    <tr><td>PostGIS</td><td>Extensión geoespacial: geometrías, distancias, KNN, buffers</td></tr>
+    <tr><td>pgRouting</td><td>Extensión de rutas sobre grafos: Dijkstra, matrices de coste, TSP, componentes</td></tr>
+    <tr><td>Service principal (SP) del app</td><td>Identidad con la que el app accede a Lakebase y al AI Gateway, con tokens OAuth</td></tr>
+    <tr><td>AI Gateway</td><td>Punto único para invocar modelos, con gobierno y trazabilidad</td></tr>
+    <tr><td>Git folder</td><td>Carpeta del workspace enlazada a un repositorio Git</td></tr>
+    <tr><td>DAB</td><td>Declarative Automation Bundle: infraestructura y jobs como código (<code>databricks.yml</code>)</td></tr>
+    <tr><td>Genie Code / skill</td><td>Asistente agéntico del workspace; una skill es un paquete de instrucciones y scripts que le enseña una tarea</td></tr>
+    <tr><td>PITR</td><td>Point-in-time restore: recuperar el estado de una rama en un instante dentro de la ventana de restauración (2–30 días)</td></tr>
+    <tr><td>Snapshot</td><td>Copia inmutable de una rama raíz en un instante; se restaura creando una rama nueva. Manual o programado</td></tr>
+    <tr><td>Rama raíz</td><td>Rama sin padre (como <code>production</code> o una restauración). Máximo 3 por proyecto</td></tr>
+    <tr><td>Copy-on-write</td><td>La rama solo guarda lo que cambia respecto a su padre; crearla no copia datos</td></tr>
+  </table>
+</section>
+
+<div id="notes"></div>
+<div id="grinchFx" aria-hidden="true"></div>
+<div class="keys">← → pasos · 1–5 pestañas · N notas · T fondo · G Grinch · F pantalla completa</div>
+
+<script>
+const blocks = [...document.querySelectorAll("section.block")];
+const navs = [...document.querySelectorAll(".navbtn")];
+let bi = 0;
+const state = new Map(); // block id -> {pane, step}
+
+function stepsOf(pane) { return [...pane.querySelectorAll(".steps li")]; }
+function maxStep(pane) { const s = stepsOf(pane).map((li) => +li.dataset.step); return s.length ? Math.max(...s) : 0; }
+
+function paint(block) {
+  const st = state.get(block.id);
+  const panes = [...block.querySelectorAll(".pane")];
+  block.querySelectorAll(".subtab").forEach((t, i) => t.classList.toggle("active", i === st.pane));
+  panes.forEach((p, i) => p.classList.toggle("active", i === st.pane));
+  const pane = panes[st.pane];
+  if (!pane) return;
+  pane.querySelectorAll("[data-step]").forEach((el) => {
+    const n = +el.dataset.step;
+    el.classList.toggle("on", n === st.step);
+    el.classList.toggle("done", st.step > 0 && n < st.step);
+  });
+  paintFlow(pane, st.step);
+}
+
+// Branch-first flow (block 6 «Agéntico», «Rama → aprobación» tab): a token travels through the steps
+const FLOW_POS = { 1: [95, 300], 2: [265, 215], 3: [430, 215], 4: [635, 200], 5: [635, 102], 6: [477, 60], 7: [675, 60] };
+function paintFlow(pane, step) {
+  const tok = pane.querySelector(".diagram.flow .token");
+  if (!tok) return;
+  const svg = tok.closest("svg");
+  if (svg && svg.dataset.pos && !svg._pos) svg._pos = JSON.parse(svg.dataset.pos);  // per-diagram token positions
+  const pos = (svg && svg._pos) || FLOW_POS;
+  const p = pos[step];
+  tok.classList.toggle("on", !!p);
+  if (p) { tok.style.cx = p[0] + "px"; tok.style.cy = p[1] + "px"; }
+}
+let flowTimer = null;
+function stopFlow() {
+  clearInterval(flowTimer); flowTimer = null;
+  document.querySelectorAll(".flow-play").forEach((b) => { b.classList.remove("playing"); b.textContent = "▶ Reproducir"; });
+}
+
+function show(i) {
+  bi = Math.max(0, Math.min(blocks.length - 1, i));
+  blocks.forEach((b, k) => b.classList.toggle("active", k === bi));
+  navs.forEach((n) => n.classList.toggle("active", n.dataset.go === blocks[bi].id));
+  if (!state.has(blocks[bi].id)) state.set(blocks[bi].id, { pane: 0, step: 0 });
+  document.getElementById("clock").textContent = blocks[bi].dataset.time || "";
+  const src = blocks[bi].querySelector(".note-src");
+  document.getElementById("notes").innerHTML = src ? src.innerHTML : "<h4>NOTAS</h4><p>—</p>";
+  paint(blocks[bi]);
+  history.replaceState(null, "", "#" + blocks[bi].id);
+}
+
+function move(d) {
+  const b = blocks[bi], st = state.get(b.id);
+  const pane = b.querySelectorAll(".pane")[st.pane];
+  const max = pane ? maxStep(pane) : 0;
+  if (max && (st.pane === 0 || pane.classList.contains("flow-pane"))) {
+    const next = st.step + d;
+    if (next >= 0 && next <= max) { st.step = next; return paint(b); }
+  }
+  show(bi + d);
+  if (d < 0) { const s = state.get(blocks[bi].id); const p = blocks[bi].querySelectorAll(".pane")[s.pane]; if (s.pane === 0 && p) { s.step = maxStep(p); paint(blocks[bi]); } }
+}
+
+navs.forEach((n) => n.addEventListener("click", () => show(blocks.findIndex((b) => b.id === n.dataset.go))));
+blocks.forEach((b) => {
+  b.querySelectorAll(".subtab").forEach((t, i) => t.addEventListener("click", () => { state.get(b.id).pane = i; paint(b); }));
+  b.querySelectorAll(".steps li").forEach((li) => li.addEventListener("click", () => { const s = state.get(b.id); s.step = +li.dataset.step; paint(b); }));
+  b.querySelectorAll(".flow-play").forEach((btn) => btn.addEventListener("click", () => {
+    if (flowTimer) return stopFlow();
+    const s = state.get(b.id), pane = btn.closest(".pane"), max = maxStep(pane);
+    s.step = s.step >= max ? 1 : Math.max(1, s.step); paint(b);
+    btn.classList.add("playing"); btn.textContent = "❚❚ Pausa";
+    flowTimer = setInterval(() => {
+      if (!pane.classList.contains("active") || !b.classList.contains("active")) return stopFlow();
+      if (s.step >= max) return stopFlow();
+      s.step += 1; paint(b);
+    }, 2400);
+  }));
+});
+document.querySelectorAll(".dstep input").forEach((c) => c.addEventListener("change", () => c.closest(".dstep").classList.toggle("checked", c.checked)));
+document.querySelectorAll("pre button.copy").forEach((btn) => btn.addEventListener("click", () => {
+  const text = btn.parentElement.innerText.replace(/^copiar\n?/, "");
+  navigator.clipboard.writeText(text).then(() => { btn.textContent = "copiado"; setTimeout(() => (btn.textContent = "copiar"), 1200); });
+}));
+document.addEventListener("keydown", (e) => {
+  if (e.target instanceof Element && e.target.matches("input, textarea")) return;
+  const b = blocks[bi], st = state.get(b.id);
+  if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); move(1); }
+  else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); move(-1); }
+  else if (["1", "2", "3", "4", "5"].includes(e.key) && b.querySelectorAll(".pane").length >= +e.key) { st.pane = +e.key - 1; paint(b); }
+  else if (e.key.toLowerCase() === "n") document.getElementById("notes").classList.toggle("on");
+  else if (e.key.toLowerCase() === "f") { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+});
+const start = blocks.findIndex((b) => "#" + b.id === location.hash);
+show(start >= 0 ? start : 0);
+window.addEventListener("hashchange", () => { const i = blocks.findIndex((b) => "#" + b.id === location.hash); if (i >= 0 && i !== bi) show(i); });
+
+// Theme: dark (default) or light (white background); remembered between sessions; key T.
+const THEME_KEY = "lakebase-deck-theme";
+function applyTheme(t) {
+  document.documentElement.dataset.theme = t;
+  document.getElementById("themeBtn").textContent = t === "light" ? "☾ Fondo oscuro" : "☀ Fondo blanco";
+  try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
+}
+function toggleTheme() { applyTheme(document.documentElement.dataset.theme === "light" ? "dark" : "light"); }
+document.getElementById("themeBtn").addEventListener("click", toggleTheme);
+document.addEventListener("keydown", (e) => {
+  if (e.target instanceof Element && e.target.matches("input, textarea")) return;
+  if (e.key.toLowerCase() === "t" && !e.metaKey && !e.ctrlKey) toggleTheme();
+});
+applyTheme((() => { try { return localStorage.getItem(THEME_KEY) || "dark"; } catch (e) { return "dark"; } })());
+
+// ---------------- Architecture diagram (iterations) ----------------
+const S = "#EF5B3F", L = "#F5C5BC";
+const ICON = {
+  apps: `<svg viewBox="0 0 48 48"><rect x="9" y="9" width="13" height="13" rx="2.5" fill="${L}"/><rect x="26" y="9" width="13" height="13" rx="2.5" fill="${S}"/><rect x="9" y="26" width="13" height="13" rx="2.5" fill="${S}"/><rect x="26" y="26" width="13" height="13" rx="2.5" fill="${L}"/></svg>`,
+  lakebase: `<svg viewBox="0 0 200 200"><path d="M100 119.5C88.9 115.6 76.1 113.4 62.5 113.4C48.9 113.4 36.1 115.6 25 119.5V79.6H175V119.5C163.9 123.3 151.1 125.4 137.5 125.4C124.3 125.4 111.9 123.4 101 119.9L100 119.5Z" fill="#FABFBA"/><path d="M62.7 128C75.8 128 88.1 129.9 99 133.3L101 134C111.9 137.3 124.2 139.2 137.3 139.2C150.4 139.2 162.8 137.3 173.6 134L174.6 133.6H175V175H25V133.6H25.4C36.4 130.1 49.1 128 62.7 128Z" fill="#FF5F46"/><rect x="25" y="25" width="150" height="41.4" fill="#FABFBA"/></svg>`,
+  uc: `<svg viewBox="0 0 200 200"><path d="M99.8 72.4L75.8 86.2V113.8L99.8 127.6L123.7 113.8V86.2Z" fill="#FF5F46"/><path d="M150.2 70.9H177.7L163.9 47Z M150.2 129.2L164 153.1L177.8 129.2Z M85.9 182H113.4L99.6 158.1Z M21.7 129.2L35.5 153.1L49.3 129.2Z M21.7 70.9H49.2L35.4 47Z M85.9 18L99.8 41.9L113.6 18Z" fill="#FF5F46"/><path d="M126 22.7L110 50.3L137.6 66.3L153.6 38.7Z M179.8 84H147.9V116H179.8Z M137.6 133.8L110 149.8L126 177.4L153.6 161.5Z M61.7 133.8L45.7 161.5L73.4 177.4L89.4 149.8Z M51.5 84H19.5V116H51.5Z M73.4 22.7L45.7 38.7L61.7 66.3L89.4 50.3Z" fill="#FABFBA"/></svg>`,
+  gateway: (() => { const sq = [0, 60, 120, 180].map((d) => { const a = d * Math.PI / 180, x = 24 + 15 * Math.cos(a), y = 27.5 - 15 * Math.sin(a); return `<rect x="${x - 3.8}" y="${y - 3.8}" width="7.6" height="7.6" fill="${L}" transform="rotate(${-d} ${x} ${y})"/>`; }).join("");
+    return `<svg viewBox="0 0 48 48">${sq}<path fill="${S}" d="M16.5 36.5 V26 a7.5 7.5 0 0 1 15 0 V36.5 Z"/><path fill="${L}" d="M12 44.5 L36 44.5 L31.5 38.5 L16.5 38.5 Z"/></svg>`; })(),
+  genie: `<svg viewBox="0 0 200 200"><path d="M81.8 159.8C75 159.8 69.5 166.6 69.5 175H126.4C126.4 166.6 120.9 159.8 114.1 159.8Z" fill="#FF5F46"/><path d="M179.6 80.8C167.5 100.2 149.4 126.9 141.3 133.8C133.2 140.6 121.1 153 93.3 153C73.8 153 57 140.5 49.5 122.5C48.5 119.9 45.9 118.1 42.9 118.1C39 118.1 35.8 121.3 35.8 125.2C35.8 126.2 35.9 127 36.3 127.8C38 131.8 42.5 132 42.5 144.6C30.7 144.6 21.1 135 21.1 123.1C21.1 111.3 30.7 101.6 42.5 101.6H79.5C82.1 101.6 84.5 102.7 86.1 104.7C88.9 108.2 91 111.4 92.6 114.1C94.1 116.6 98.4 116.6 99.9 114.1C101.4 111.5 103.4 108.3 106 104.9C107.6 102.8 110.1 101.6 112.8 101.6H125.4C144 101.6 154.1 92.8 159.3 86.4C162 83 165.8 80.8 170 80.8Z" fill="#FABFBA"/><path d="M96.4 111.8C96.4 87.9 77.3 68.5 53.8 68.4C77.3 68.3 96.4 48.9 96.4 25C96.4 49 115.5 68.4 139.2 68.4C115.5 68.4 96.4 87.8 96.4 111.8Z" fill="#FF5F46"/></svg>`,
+  flow: `<svg viewBox="0 0 200 200"><path d="M175.5 78.1H149.6L75.8 168H25V121.1H57.8L131.5 31.3H175.5Z" fill="#FF5F46"/><path d="M142.7 121.1H175.5V168H124.7L110.1 150.2L138.4 115.8ZM69 31.3L90.4 57.4L62.2 91.8L50.9 78.1H25V31.3Z" fill="#FABFBA"/></svg>`,
+  lakehouse: `<svg viewBox="0 0 200 200"><path d="M174.9 81.4V123.4C163.7 128.5 151 131.4 137.4 131.4C123.8 131.4 111.1 128.5 100 123.4C88.9 118.2 76.1 115.3 62.6 115.3C49 115.3 36.2 118.2 25.1 123.4V81.4L99.7 22.9Z" fill="#FABFBA"/><path d="M62.6 131.4C76.2 131.4 88.9 134.3 100 139.5C111.1 144.6 123.9 147.5 137.4 147.5C150.6 147.5 163 144.8 173.8 139.9L174.9 139.5V175.9C163.7 181 151 184 137.4 184C123.8 184 111.1 181 100 175.9C88.9 170.8 76.1 167.8 62.6 167.8C49.4 167.8 37 170.6 26.2 175.4L25.1 175.9V139.5C36.3 134.3 49 131.4 62.6 131.4Z" fill="#FF5F46"/></svg>`,
+  code: `<svg viewBox="0 0 24 24" fill="none" stroke="${S}" stroke-width="3.4"><path d="M9 5.5 3.5 12 9 18.5M15 5.5 20.5 12 15 18.5"/></svg>`,
+  route: `<svg viewBox="0 0 24 24" fill="none" stroke="${S}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="2.5" fill="${L}"/><circle cx="18" cy="6" r="2.5" fill="${S}"/><path d="M8 17c6 0 2-9 8-10"/></svg>`,
+  branch: `<svg viewBox="0 0 24 24" fill="none" stroke="${S}" stroke-width="2.2" stroke-linecap="round"><circle cx="6" cy="5" r="2.2" fill="${L}"/><circle cx="6" cy="19" r="2.2" fill="${L}"/><circle cx="18" cy="9" r="2.2" fill="${S}"/><path d="M6 7v10M18 11c0 4-6 3-12 6"/></svg>`,
+  key: `<svg viewBox="0 0 24 24" fill="none" stroke="${S}" stroke-width="2.2" stroke-linecap="round"><circle cx="8" cy="14" r="4" fill="${L}"/><path d="M11 11l8-8M16 6l2 2M14 8l2 2"/></svg>`,
+  map: `<svg viewBox="0 0 24 24" fill="none" stroke="${S}" stroke-width="2" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z" fill="${L}"/><path d="M9 4v14M15 6v14"/></svg>`,
+  storm: `<svg viewBox="0 0 24 24" fill="none" stroke="${S}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16a4 4 0 1 1 .8-7.9A5 5 0 0 1 17.5 9 3.5 3.5 0 0 1 17 16z" fill="${L}"/><path d="M12 15l-2 4h3l-2 4"/></svg>`,
+  user: `<svg viewBox="0 0 24 24" fill="none" stroke="${S}" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4" fill="${L}"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>`,
+  shield: `<svg viewBox="0 0 24 24" fill="none" stroke="${S}" stroke-width="2" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.3 8-8 9-4.7-1-8-4.5-8-9V6z" fill="${L}"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>`,
+  dice: `<svg viewBox="0 0 24 24" fill="none" stroke="${S}" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3" fill="${L}"/><circle cx="9" cy="9" r="1.3" fill="${S}"/><circle cx="15" cy="15" r="1.3" fill="${S}"/><circle cx="15" cy="9" r="1.3" fill="${S}"/><circle cx="9" cy="15" r="1.3" fill="${S}"/></svg>`,
+};
+
+const ITER = {
+  1: { t: "Datos en Unity Catalog", k: "Iteración 1 · notebook 00, celda 1", time: "418 s a 0,75 · 77 s a 0,1",
+       items: ["Esquema <code>navidad_&lt;slug&gt;</code> en tu catálogo", "4 tablas Delta: <code>households</code>, <code>people</code>, <code>preferences</code>, <code>journeys</code> (CDF activado)",
+               "Datos sintéticos deterministas: 21 ciudades, 5 campañas, Nochebuena + Reyes"],
+       where: "<b>Dónde verlo:</b> Catalog Explorer → tu catálogo → <code>navidad_&lt;slug&gt;</code> · código <code>write_uc.py</code>" },
+  2: { t: "Lakebase + synced tables", k: "Iteración 2 · notebook 00, celda 2", time: "≈ 30 s",
+       items: ["Proyecto Lakebase <code>navidad-&lt;slug&gt;</code>: Postgres 17, rama <code>production</code>", "Cómputo <code>primary</code> 0,5–8 CU con scale-to-zero (60 s)",
+               "4 synced tables <code>*_sync</code> (Delta → Postgres, modo SNAPSHOT)"],
+       where: "<b>Dónde verlo:</b> Lakebase → proyecto → <i>Tables</i> · editor SQL con <code>sql/01_explorar.sql</code> · código <code>provision_lakebase.py</code>" },
+  3: { t: "App + AI Gateway", k: "Iteración 3 · notebook 00, celda 3", time: "186 s a 0,75 · 143 s a 0,1",
+       items: ["Databricks App <code>navidad-&lt;slug&gt;-app</code> (FastAPI + React, header navideño)", "Inicio <b>Mapa de rutas</b> (<code>/api/route*</code>) y Diagnóstico (<code>/plumbing</code>)",
+               "Service principal del app con recurso <code>postgres</code> y OAuth: sin contraseñas", "Ping al modelo vía AI Gateway (respuesta en español)"],
+       where: "<b>Dónde verlo:</b> Compute → Apps → <code>navidad-&lt;slug&gt;-app</code> · código <code>deploy_app.py</code>" },
+  4: { t: "Red de carreteras: PostGIS + pgRouting", k: "Iteración 4 · notebook 00, celda 4", time: "9–13 s (grafo precargado)",
+       items: ["Extensiones <code>postgis</code> y <code>pgrouting</code>", "Esquema nativo <code>navidad_geo</code>: <code>ways</code>, <code>vertices</code>, <code>household_node</code> (Madrid, Valencia y Barcelona, OSM)",
+               "Escenarios Filomena (Madrid), DANA y cortes de Barcelona, con zonas <b>inactivas</b> en producción", "Permisos del SP: <code>navidad_geo</code> + <b>Can Manage</b> del proyecto (para crear ramas)"],
+       where: "<b>Dónde verlo:</b> <code>sql/02_postgis_pgrouting.sql</code> · página <code>/planner</code> · código <code>provision_incidents.py</code>" },
+  5: { t: "Tiempo real: Zerobus + Lakebase sink", k: "Iteración 5 · D2b: notebooks 04 + 05", time: "evento → Lakebase p50 ≈ 14 s",
+       items: ["Productor (notebook 05): la noche entera de España a cámara rápida, con duendes / pajes y excepciones", "<b>Zerobus</b> → tabla Delta <code>delivery_events_bronze</code> (gRPC, sin Kafka)",
+               "Spark Structured Streaming <b>serverless</b> (notebook 04) → <b>Lakebase sink</b> con <code>upsertkey</code> en <code>navidad_live</code>", "App <code>/control</code> + agente que propone acciones y espera confirmación"],
+       where: "<b>Dónde verlo:</b> app → Centro de control · Catalog → <code>delivery_events_bronze</code> · <code>workshop/notebooks/04–05</code> · código <code>live_sim.py</code>, <code>control.py</code>" },
+  6: { t: "Ramas de simulación (what-if)", k: "Iteración 6 · D3: app /planner o notebook 01", time: "rama 2–3 s · simulación 3–8 s",
+       items: ["Rama <code>sim-dana-…</code> / <code>sim-bcn-…</code> copy-on-write con cómputo propio y TTL 24 h", "Incidencia activa en la rama: costes de carretera recalculados (cerrado = −1)",
+               "<code>pgr_dijkstraCost</code> antes y después · sugerencias: desvíos, puntos de recogida, refuerzos, <code>pgr_TSP</code>", "Producción intacta · «Aplicar plan» solo escribe <code>navidad_geo.applied_plan</code>"],
+       where: "<b>Dónde verlo:</b> Lakebase → Branches · app → Planificador · <code>workshop/notebooks/01_rama_whatif</code>" },
+  7: { t: "Desarrollo agéntico", k: "Iteración 7 · D4: Genie Code + skills", time: "unos minutos por petición",
+       items: ["Skills <code>navidad-hack-infra</code> y <code>navidad-hack-build-assistant</code> en Genie Code (notebook 02)", "El agente consulta Lakebase con SQL, crea una vista con <code>GRANT</code> al SP",
+               "Añade un endpoint y UI en español, y redespliega el mismo app", "Opcional: trabaja en una rama para no tocar producción"],
+       where: "<b>Dónde verlo:</b> Genie Code → «Ayúdame a construir sobre el Taller de Navidad»" },
+  8: { t: "El Grinch: backup y recuperación", k: "Iteración 8 (opcional) · notebook 03_grinch", time: "74 s a 0,75 · 63 s a 0,1",
+       items: ["Cartas a los Reyes: datos operacionales que <b>solo viven en Lakebase</b> (<code>navidad_ops.cartas_reyes</code>)", "Snapshot manual «antes del Grinch» (0,6 s) y horario de snapshots",
+               "Rama desde el momento seguro (PITR, ~5 s) para ver qué se borró", "Recuperación fila a fila en una transacción (0,3 s), sin parar el app · o restauración completa desde el snapshot (nueva rama raíz)"],
+       where: "<b>Dónde verlo:</b> Lakebase → Backup &amp; Restore · Branches · <code>workshop/notebooks/03_grinch</code>" },
+  9: { t: "Arquitectura objetivo", k: "Objetivo final", time: "~12 min desde cero a 0,75 (~5 min a 0,1)",
+       items: ["Lakehouse gobernado (UC + Delta) → base operacional (Lakebase) sin ETL a mano", "Apps y agentes sobre Postgres con extensiones (PostGIS, pgRouting; pgvector/Search para memoria)",
+               "Una rama por simulación o agente: probar sin riesgo y descartar", "Todo en un workspace: OAuth del app, AI Gateway, scale-to-zero"],
+       where: "<b>Material:</b> <code>navidad-workshop.zip</code> · README · notebooks 00–02 y 99" },
+};
+
+// one element = [iteration it appears, html]
+function prod(it, icon, title, sub, chips = []) {
+  return `<div class="ap-prod" data-it="${it}"><span class="ap-tile">${ICON[icon]}</span><span class="ap-tx"><b>${title}</b><span>${sub}</span>${chips.length ? `<div class="ap-chips">${chips.map((c) => `<span class="ap-chip">${c}</span>`).join("")}</div>` : ""}</span></div>`;
+}
+const link = (it) => `<div class="ap-link" data-it="${it}"><i></i></div>`;
+const row = (ttl, sub, tint, inner, story) => `<div class="ap-row ${tint || ""}"><div class="ap-lbl"><b>${ttl}</b><span>${sub}</span></div><div class="${story ? "ap-story" : "ap-items"}">${inner}</div></div>`;
+const ARCH_HTML = `
+  <div class="ap-plat">
+    ${row("Apps agénticas", "Lo que ve el usuario", "tint-o",
+        prod(3, "apps", "Mapa de rutas", "App en español · Nochebuena y Reyes") +
+        prod(5, "map", "Centro de control", "Entregas en directo · toda España") +
+        prod(6, "storm", "Planificador", "Parámetros + what-if en rama") +
+        prod(7, "genie", "Genie Code + skills", "El agente construye sobre Lakebase"))}
+    ${row("Trabajo agéntico", "IA y lógica sobre los datos", "",
+        prod(3, "gateway", "AI Gateway", "Modelo gobernado · respuestas en español") +
+        prod(5, "flow", "Spark Structured Streaming", "Lakebase sink · serverless", ["upsertkey"]) +
+        prod(6, "route", "Motor de simulación", "simulate · suggest", ["pgr_dijkstraCost", "pgr_TSP"]))}
+    ${row("Base operacional", "Lakebase · Postgres serverless", "tint-o",
+        prod(2, "lakebase", "production", "4 synced tables *_sync", ["0,5–8 CU", "scale-to-zero"]) + link(4) +
+        prod(4, "map", "navidad_geo", "Red OSM · escenarios", ["PostGIS", "pgRouting"]) + link(6) +
+        prod(6, "branch", "Ramas sim-*", "copy-on-write · TTL 24 h"), true)}
+    ${row("Gobierno unificado", "Un modelo para datos e IA", "tint-n",
+        prod(1, "uc", "Unity Catalog", "Esquema navidad_&lt;slug&gt; · linaje") +
+        prod(3, "key", "SP del app + OAuth", "Sin contraseñas · permisos mínimos") +
+        prod(8, "shield", "Backup & Restore", "PITR · snapshots · ventana 7 días"))}
+    ${row("Datos", "Lakehouse · Delta", "",
+        prod(1, "flow", "Generador → Delta", "hogares › personas › preferencias › rutas") + link(2) +
+        prod(1, "lakehouse", "4 tablas Delta", "CDF activado · analítica con Spark/DBSQL") + link(5) +
+        prod(5, "flow", "Zerobus → bronze", "eventos de entrega · gRPC"), true)}
+    <div class="ap-infra"><b>Infraestructura abierta</b><span>DELTA LAKE</span><span>POSTGRES 17</span><span>OPENSTREETMAP · ODbL</span><span>NATURAL EARTH</span></div>
+  </div>
+  <div class="ap-flows">
+    <div class="ap-fl" data-it="1"><i></i><i></i><em>datos → Delta</em></div>
+    <div class="ap-fl" data-it="5"><i></i><i></i><em>eventos → Zerobus</em></div>
+    <div class="ap-fl" data-it="2"><i></i><i></i><em>synced → Postgres</em></div>
+    <div class="ap-fl" data-it="4"><i></i><i></i><em>OSM → navidad_geo</em></div>
+    <div class="ap-fl" data-it="3"><i></i><i></i><em>usuario / agente → app</em></div>
+  </div>
+  <div class="ap-sources">
+    ${prod(1, "dice", "Generador", "Python · semilla fija")}
+    ${prod(5, "code", "Notebook 05", "productor · Zerobus SDK")}
+    ${prod(2, "code", "Notebook 00", "Run all · serverless")}
+    ${prod(4, "map", "OpenStreetMap", "Madrid · Valencia · Barcelona")}
+    ${prod(3, "user", "Usuarios y agentes", "navegador · Genie Code")}
+  </div>`;
+
+function builtHTML(n) {
+  const d = ITER[n];
+  return `<div class="bk">${d.k}</div><h3>${d.t}</h3><div class="meta"><span class="pill">${n === 9 ? "objetivo" : "se construye"}</span><span class="pill teal">${d.time}</span></div>
+    <ul>${d.items.map((x) => `<li>${x}</li>`).join("")}</ul><div class="where">${d.where}</div>`;
+}
+
+function paintArch(root, n) {
+  root.dataset.cur = n;
+  const target = n === 9 ? 8 : n;
+  root.querySelectorAll("[data-it]").forEach((el) => {
+    const it = +el.dataset.it;
+    el.classList.toggle("future", it > target);
+    el.classList.toggle("new", n !== 9 && it === n);
+  });
+  root.querySelectorAll(".arch-stepper button[data-n]").forEach((b) => {
+    const k = +b.dataset.n;
+    b.classList.toggle("on", k === n);
+    b.classList.toggle("done", k < n);
+  });
+  root.querySelector(".built").innerHTML = builtHTML(n);
+}
+
+function initArch(root) {
+  const from = +root.dataset.from, to = +root.dataset.to;
+  const labels = { 1: "1 · Datos", 2: "2 · Lakebase", 3: "3 · App", 4: "4 · Red", 5: "5 · Tiempo real", 6: "6 · Ramas", 7: "7 · Agéntico", 8: "8 · Grinch", 9: "Objetivo" };
+  const btns = Object.keys(labels).map((k) => `<button type="button" data-n="${k}" ${+k < from || +k > to ? "disabled" : ""}>${labels[k]}</button>`).join("");
+  root.innerHTML = `<div class="arch-stepper"><span class="lbl">Iteración</span>${btns}</div><div>${ARCH_HTML}</div><div class="built"></div>`;
+  root.querySelectorAll(".arch-stepper button[data-n]").forEach((b) => b.addEventListener("click", () => paintArch(root, +b.dataset.n)));
+  paintArch(root, +root.dataset.start);
+}
+document.querySelectorAll(".arch").forEach(initArch);
+
+// → / ← step through iterations when an architecture view is showing
+function archInView() {
+  const b = blocks[bi], st = state.get(b.id);
+  const pane = b.querySelectorAll(".pane")[st.pane];
+  return pane ? pane.querySelector(".arch") : null;
+}
+document.addEventListener("keydown", (e) => {
+  if (!["ArrowRight", "ArrowLeft", " ", "PageDown", "PageUp"].includes(e.key)) return;
+  const a = archInView();
+  if (!a) return;
+  const cur = +a.dataset.cur, from = +a.dataset.from, to = +a.dataset.to;
+  const next = cur + (e.key === "ArrowLeft" || e.key === "PageUp" ? -1 : 1);
+  if (next >= from && next <= to) { paintArch(a, next); e.stopImmediatePropagation(); e.preventDefault(); }
+}, true);
+
+// ---------------- Grinch breaks the screen (original green critter, not a licensed design) ----------------
+const CRITTER = `<svg class="critter" viewBox="0 0 250 290" aria-hidden="true">
+  <g class="hammer" style="transform-origin:190px 150px"><rect x="186" y="40" width="10" height="120" rx="4" fill="#7a5136"/>
+    <rect x="160" y="22" width="64" height="34" rx="6" fill="#5b6670"/><rect x="160" y="22" width="64" height="9" rx="4" fill="#98a4aa"/></g>
+  <path d="M125 60 L112 30 L128 48 L135 18 L142 50 L160 28 L152 62 Z" fill="#3f8f2a"/>
+  <ellipse cx="125" cy="175" rx="92" ry="100" fill="#4caf38"/>
+  <path d="M40 170 L18 160 L40 150 Z M210 170 L232 158 L210 148 Z M60 245 L48 270 L80 255 Z M190 245 L202 270 L170 255 Z" fill="#3f8f2a"/>
+  <ellipse cx="125" cy="118" rx="70" ry="60" fill="#5cc444"/>
+  <path d="M78 98 Q95 82 112 100" stroke="#1e4a14" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <path d="M138 100 Q155 82 172 98" stroke="#1e4a14" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <ellipse cx="96" cy="113" rx="13" ry="10" fill="#fff"/><ellipse cx="154" cy="113" rx="13" ry="10" fill="#fff"/>
+  <circle cx="99" cy="115" r="6" fill="#c8102e"/><circle cx="151" cy="115" r="6" fill="#c8102e"/>
+  <path d="M82 140 Q125 185 168 140 Q125 160 82 140 Z" fill="#1e4a14"/>
+  <path d="M95 146 L101 156 L107 148 L113 158 L119 149 L125 159 L131 149 L137 158 L143 148 L149 156 L155 146" stroke="#fff" stroke-width="3" fill="none" stroke-linejoin="round"/>
+  <path d="M190 150 Q205 130 196 110" stroke="#4caf38" stroke-width="18" fill="none" stroke-linecap="round"/>
+</svg>`;
+
+let glass = null; // { gaps, fallen, svg }
+function mulberry(seed) { let a = seed >>> 0; return () => { a = (a + 0x6d2b79f5) >>> 0; let t = Math.imul(a ^ (a >>> 15), a | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+function buildGlass(cx, cy) {
+  const W = innerWidth, H = innerHeight, rnd = mulberry(1225), N = 15;
+  const radii = [26, 70, 150, 270, 460, Math.hypot(W, H)];
+  const rays = Array.from({ length: N }, (_, i) => {
+    const a = (i / N) * Math.PI * 2 + (rnd() - .5) * .32;
+    return radii.map((r, k) => { const aa = a + (k ? (rnd() - .5) * .12 : 0), rr = r * (k ? .85 + rnd() * .3 : 1); return [cx + rr * Math.cos(aa), cy + rr * Math.sin(aa)]; });
+  });
+  const pts = (arr) => arr.map((p) => p.map((v) => v.toFixed(1)).join(",")).join(" ");
+  let shards = "", cracks = "", gaps = "";
+  for (let i = 0; i < N; i++) {
+    const A = rays[i], B = rays[(i + 1) % N];
+    for (let k = 0; k < radii.length - 1; k++) {
+      const poly = pts([A[k], A[k + 1], B[k + 1], B[k]]);
+      const falls = k >= 1 && k <= 2 && rnd() < .45;
+      gaps += falls ? `<polygon class="gap" points="${poly}" style="opacity:0"/>` : "";
+      shards += `<polygon class="shard${(i + k) % 2 ? " alt" : ""}${falls ? " falls" : ""}" points="${poly}"/>`;
+      cracks += `<polyline class="crack${k > 2 ? " thin" : ""}" points="${pts([A[k], A[k + 1]])}"/>`;
+      if (k < 4) cracks += `<polyline class="crack thin" points="${pts([A[k + 1], B[k + 1]])}"/>`;
+    }
+  }
+  const hole = pts(rays.map((r) => r[0]));
+  return `<svg class="glass" viewBox="0 0 ${W} ${H}"><g class="gaps">${gaps}</g><polygon class="gap hole" points="${hole}"/><g class="shards">${shards}</g><g class="cracks">${cracks}</g></svg>`;
+}
+
+function fxOnNow() {
+  let stored = null; try { stored = localStorage.getItem("navidad-fx"); } catch (e) {}
+  return stored ? stored === "on" : document.documentElement.dataset.navidadFx !== "off";
+}
+
+async function grinchAttack() {
+  const box = document.getElementById("grinchFx");
+  if (box.classList.contains("on")) return;
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const cx = innerWidth * .62, cy = innerHeight * .46;
+  box.innerHTML = `<div class="flash"></div>${CRITTER}<div class="bubble">¡Adiós, cartas! 😈</div><div class="toast">Restaurado desde la rama PITR ✓</div>`;
+  box.classList.add("on");
+  const wait = (ms) => new Promise((r) => setTimeout(r, reduced ? 0 : ms));
+  const critter = box.querySelector(".critter"), hammer = box.querySelector(".hammer");
+  if (!reduced) {
+    await critter.animate([{ transform: "translateY(0) rotate(8deg)" }, { transform: "translateY(-330px) rotate(-6deg)" }, { transform: "translateY(-300px) rotate(0)" }],
+                          { duration: 650, easing: "cubic-bezier(.2,.9,.3,1.2)", fill: "forwards" }).finished;
+    await hammer.animate([{ transform: "rotate(0)" }, { transform: "rotate(35deg)" }, { transform: "rotate(-95deg)" }], { duration: 380, easing: "ease-in", fill: "forwards" }).finished;
+  } else { critter.style.transform = "translateY(-300px)"; }
+  // impact
+  box.insertAdjacentHTML("afterbegin", buildGlass(cx, cy));
+  const svg = box.querySelector("svg.glass");
+  box.querySelector(".flash").animate([{ opacity: .85 }, { opacity: 0 }], { duration: 260 });
+  document.body.classList.add("shake"); setTimeout(() => document.body.classList.remove("shake"), 460);
+  svg.querySelectorAll(".crack").forEach((c, i) => {
+    const len = c.getTotalLength ? c.getTotalLength() : 200;
+    c.style.strokeDasharray = len; c.style.strokeDashoffset = reduced ? 0 : len;
+    if (!reduced) c.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: 260 + (i % 7) * 40, delay: (i % 5) * 18, fill: "forwards", easing: "ease-out" });
+  });
+  box.querySelector(".bubble").classList.add("on");
+  await wait(550);
+  const fallen = [...svg.querySelectorAll(".shard.falls")];
+  const gaps = [...svg.querySelectorAll(".gaps .gap")];
+  gaps.forEach((g) => (g.style.opacity = 1));
+  fallen.forEach((sh, i) => {
+    const dx = (Math.random() - .5) * 160, rot = (Math.random() - .5) * 120;
+    sh._anim = sh.animate([{ transform: "none", opacity: 1 }, { transform: `translate(${dx}px, ${innerHeight}px) rotate(${rot}deg)`, opacity: .2 }],
+                          { duration: reduced ? 1 : 1100 + Math.random() * 500, delay: reduced ? 0 : i * 25, easing: "cubic-bezier(.5,0,1,1)", fill: "forwards" });
+  });
+  await wait(1700);
+  if (!reduced) await critter.animate([{ transform: "translateY(-300px)" }, { transform: "translateY(0) rotate(10deg)" }], { duration: 500, easing: "ease-in", fill: "forwards" }).finished;
+  box.querySelector(".bubble").classList.remove("on");
+  box.classList.add("broken");
+  glass = { svg, fallen, gaps };
+}
+
+async function grinchRepair(withToast = true) {
+  const box = document.getElementById("grinchFx");
+  if (!glass) { box.classList.remove("on", "broken"); box.innerHTML = ""; return; }
+  const { svg, fallen, gaps } = glass; glass = null;
+  const anims = fallen.map((sh) => sh._anim && (sh._anim.reverse(), sh._anim.finished));
+  await Promise.all(anims.filter(Boolean));
+  gaps.forEach((g) => (g.style.opacity = 0));
+  svg.querySelector(".hole").style.opacity = 0;
+  svg.querySelectorAll(".crack").forEach((c) => c.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 500, fill: "forwards" }));
+  if (withToast) { const t = box.querySelector(".toast"); t.classList.add("on"); await new Promise((r) => setTimeout(r, 1500)); t.classList.remove("on"); }
+  else await new Promise((r) => setTimeout(r, 500));
+  box.classList.remove("on", "broken"); box.innerHTML = "";
+}
+
+document.getElementById("grinchBtn").addEventListener("click", () => (glass ? grinchRepair() : grinchAttack()));
+document.getElementById("grinchFx").addEventListener("click", () => grinchRepair(false));
+document.addEventListener("keydown", (e) => {
+  if (e.target instanceof Element && e.target.matches("input, textarea")) return;
+  if (e.key === "Escape" && glass) grinchRepair(false);
+  if (e.key.toLowerCase() === "g" && !e.metaKey && !e.ctrlKey && blocks[bi].id === "grinch") (glass ? grinchRepair() : grinchAttack());
+});
+// Story hook: step 3 (Grinch) breaks the screen when Xmas effects are on; step 5 (recover) repairs it.
+const _paint = paint;
+paint = function (block) {
+  _paint(block);
+  if (block.id !== "grinch") return;
+  const st = state.get(block.id);
+  if (st.pane !== 0) return;
+  if (st.step === 3 && fxOnNow() && !glass) grinchAttack();
+  if (st.step >= 5 && glass) grinchRepair();
+  if (st.step < 3 && glass) grinchRepair(false);
+};
+</script>
+<script>
+/* ---- navidad-fx.js (from the app) ---- */
+// Navidad header effects (vanilla JS, no framework). Mounts into the first
+// element with [data-navidad-header]: Santa hat on [data-navidad-logo], a tree +
+// snowman scene on the right half, contained snowfall, and sky events (Santa's
+// sleigh with reindeer, shooting stars). Decorative only: aria-hidden layers,
+// pointer-events none. Off via <html data-navidad-fx="off">, the toggle button
+// (persisted in localStorage "navidad-fx"), or prefers-reduced-motion (motion
+// layers only). Add ?fx=rapido to the URL to see Santa within ~2 s (demo mode).
+(() => {
+  const STORAGE_KEY = "navidad-fx";
+  const NS = "http://www.w3.org/2000/svg";
+  const reduceMotion = window.matchMedia
+    ? window.matchMedia("(prefers-reduced-motion: reduce)")
+    : { matches: false, addEventListener() {} };
+  const fast = new URLSearchParams(location.search).get("fx") === "rapido";
+  // [first delay, mean interval, jitter] in ms
+  const TIMING = fast
+    ? { santa: [1500, 20000, 3000], star: [4000, 10000, 3000] }
+    : { santa: [8000, 240000, 60000], star: [20000, 60000, 20000] };
+
+  const svg = (attrs, inner) =>
+    `<svg xmlns="${NS}" aria-hidden="true" ${attrs}>${inner}</svg>`;
+
+  // --- Static art ---------------------------------------------------------
+  const HAT = svg(
+    'class="navidad-hat" viewBox="222 70 180 136"',
+    '<g transform="rotate(14 300 182)">' +
+      '<path d="M246 176 C252 120 300 84 362 92 C352 104 344 124 352 172 Z" fill="var(--color-holiday-red)"/>' +
+      '<circle cx="366" cy="94" r="17" fill="var(--color-holiday-fur)" stroke="var(--color-holiday-fur-edge)" stroke-width="1" vector-effect="non-scaling-stroke"/>' +
+      '<rect x="234" y="162" width="132" height="32" rx="16" fill="var(--color-holiday-fur)" stroke="var(--color-holiday-fur-edge)" stroke-width="1" vector-effect="non-scaling-stroke"/>' +
+      "</g>"
+  );
+
+  function tier(apexY, half, baseY, fill) {
+    const l = 20 - half;
+    const r = 20 + half;
+    return (
+      `<path d="M20 ${apexY} L${r} ${baseY} H${l} Z" fill="${fill}"/>` +
+      `<path d="M${l} ${baseY} Q${(l + 20) / 2} ${baseY - 4.2} 20 ${baseY - 1.8} Q${(r + 20) / 2} ${baseY - 4.8} ${r} ${baseY} Q20 ${baseY + 1.2} ${l} ${baseY} Z" fill="var(--color-holiday-fur)" opacity="0.9"/>`
+    );
+  }
+
+  function starPoints(cx, cy, r) {
+    return Array.from({ length: 10 }, (_, i) => {
+      const rr = i % 2 === 0 ? r : r * 0.42;
+      const a = -Math.PI / 2 + (i * Math.PI) / 5;
+      return `${cx + rr * Math.cos(a)},${cy + rr * Math.sin(a)}`;
+    }).join(" ");
+  }
+
+  function tree(height, depth, star) {
+    const fill = depth === "front" ? "var(--color-holiday-pine)" : "var(--color-holiday-pine-back)";
+    return svg(
+      `viewBox="0 -14 40 74" height="${height}"`,
+      "<g>" +
+        '<rect x="17" y="52.8" width="6" height="7.2" fill="var(--color-holiday-trunk)"/>' +
+        tier(0, 11.52, 27.6, fill) +
+        tier(14.4, 15.36, 42, fill) +
+        tier(28.8, 19.2, 56.4, fill) +
+        '<path d="M20 0 L26 9.6 Q20 12 14 9.6 Z" fill="var(--color-holiday-tree-snow)" stroke="var(--color-holiday-tree-snow-edge)" stroke-width="1" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>' +
+        "</g>" +
+        (star ? `<polygon points="${starPoints(20, -3, 7)}" fill="var(--color-holiday-gold)"/>` : "")
+    );
+  }
+
+  function snowman(height) {
+    const coal = "var(--color-holiday-coal)";
+    const ball = (cx, cy, r) =>
+      `<circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--color-holiday-fur-shade)"/>` +
+      `<circle cx="${cx - r * 0.1}" cy="${cy - r * 0.1}" r="${r * 0.9}" fill="var(--color-holiday-fur)"/>`;
+    const dot = (cx, cy, r, fill = coal) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}"/>`;
+    return svg(
+      `viewBox="0 0 80 124" height="${height}"`,
+      ball(40, 98, 24) +
+        ball(40, 61, 17) +
+        ball(40, 33, 12.5) +
+        '<path d="M25 59 L3 45 M10 50 L7 40" stroke="var(--color-holiday-trunk)" stroke-width="2.5" stroke-linecap="round"/>' +
+        '<path d="M55 59 L77 49 M71 52 L77 59" stroke="var(--color-holiday-trunk)" stroke-width="2.5" stroke-linecap="round"/>' +
+        '<rect x="26" y="42" width="28" height="6.5" rx="3.2" fill="var(--color-holiday-red)"/>' +
+        '<rect x="45" y="45" width="7" height="18" rx="3" fill="var(--color-holiday-red)"/>' +
+        '<rect x="45" y="54" width="7" height="2.5" fill="var(--color-holiday-fur)" opacity="0.85"/>' +
+        '<rect x="45" y="59" width="7" height="2.5" fill="var(--color-holiday-fur)" opacity="0.85"/>' +
+        `<rect x="25" y="20" width="30" height="4" rx="1.5" fill="${coal}"/>` +
+        `<rect x="30.5" y="2" width="19" height="19" rx="1.5" fill="${coal}"/>` +
+        '<rect x="30.5" y="16" width="19" height="3.5" fill="var(--color-holiday-red)"/>' +
+        dot(35.8, 30, 1.7) +
+        dot(44.2, 30, 1.7) +
+        dot(32.5, 35, 2.4, "var(--color-holiday-cheek)") +
+        dot(47.5, 35, 2.4, "var(--color-holiday-cheek)") +
+        '<path d="M40 33 L53 35 L40 36.5 Z" fill="var(--color-holiday-carrot)"/>' +
+        [38, 39.5, 39.5, 38].map((cy, i) => dot(35.5 + i * 3, cy, 0.9)).join("") +
+        dot(40, 57, 1.9) +
+        dot(40, 66, 1.9) +
+        dot(40, 92, 2.1)
+    );
+  }
+
+  const SCENE_PROPS = [
+    [6, () => tree(20, "back")],
+    [10, () => tree(28, "front")],
+    [26, () => tree(18, "back")],
+    [30, () => tree(30, "front", true)],
+    [34, () => tree(22, "back")],
+    [50, () => snowman(28)],
+    [68, () => tree(24, "back")],
+    [72, () => tree(30, "front")],
+    [89, () => tree(26, "front")],
+    [93, () => tree(18, "back")],
+  ];
+
+  function scene() {
+    return (
+      `<div class="navidad-scene" aria-hidden="true">` +
+      svg(
+        'class="hill" viewBox="0 0 100 10" preserveAspectRatio="none"',
+        '<path d="M0 10 C6 6 14 3 24 4 C34 5 40 7 50 5 C60 3 68 4 78 6 C88 8 94 4 100 6 V10 Z" fill="var(--color-holiday-mini-hill)"/>'
+      ) +
+      SCENE_PROPS.map(([at, el]) => `<div class="prop" style="left:${at}%">${el()}</div>`).join("") +
+      "</div>"
+    );
+  }
+
+  // --- Santa's sleigh -----------------------------------------------------
+  function reindeer(cx, cy, lead) {
+    const body = "var(--color-holiday-reindeer)";
+    const leg = `stroke="${body}" stroke-width="2.4" stroke-linecap="round"`;
+    return (
+      "<g>" +
+      `<path d="M${cx + 7} ${cy + 3} L${cx + 14} ${cy + 8} M${cx + 4} ${cy + 4} L${cx + 9} ${cy + 10}" ${leg}/>` +
+      `<path d="M${cx - 7} ${cy + 3} L${cx - 15} ${cy + 6} M${cx - 4} ${cy + 4} L${cx - 10} ${cy + 9}" ${leg}/>` +
+      `<ellipse cx="${cx}" cy="${cy}" rx="11" ry="5.2" fill="${body}"/>` +
+      `<path d="M${cx + 7} ${cy - 2} L${cx + 13} ${cy - 9}" stroke="${body}" stroke-width="4.2" stroke-linecap="round"/>` +
+      `<ellipse cx="${cx + 15.5}" cy="${cy - 10}" rx="4.4" ry="3.2" fill="${body}"/>` +
+      `<path d="M${cx + 13} ${cy - 12} L${cx + 11} ${cy - 18} M${cx + 12} ${cy - 15} L${cx + 8} ${cy - 17} M${cx + 15} ${cy - 12} L${cx + 16} ${cy - 18} M${cx + 16} ${cy - 15} L${cx + 19} ${cy - 17}" stroke="var(--color-holiday-trunk)" stroke-width="1.4" stroke-linecap="round"/>` +
+      `<circle cx="${cx - 11}" cy="${cy - 2.5}" r="2" fill="var(--color-holiday-fur)"/>` +
+      `<circle cx="${cx + 19.6}" cy="${cy - 9.6}" r="${lead ? 2.3 : 1.3}" fill="${lead ? "var(--color-holiday-red)" : "var(--color-holiday-coal)"}"/>` +
+      `<rect x="${cx - 3}" y="${cy - 5}" width="3" height="10" rx="1.2" fill="var(--color-holiday-red)"/>` +
+      "</g>"
+    );
+  }
+
+  // [x, y, size, isSparkle, delaySeconds]
+  const TRAIL = [
+    [-6, 30, 9, true, 0], [-18, 22, 2.6, false, 0.15], [-30, 34, 7, true, 0.3],
+    [-42, 25, 2.2, false, 0.1], [-55, 19, 6, true, 0.45], [-67, 32, 2, false, 0.25],
+    [-80, 25, 5, true, 0.05], [-92, 35, 1.6, false, 0.35], [-104, 21, 4, true, 0.2],
+    [-116, 29, 1.4, false, 0.4],
+  ];
+
+  function sleigh() {
+    const h = 22, w = 176, vh = 52;
+    const trail = TRAIL.map(([x, y, s, sparkle, delay], i) => {
+      const shape = sparkle
+        ? `<path d="M${x} ${y - s} Q${x} ${y} ${x + s} ${y} Q${x} ${y} ${x} ${y + s} Q${x} ${y} ${x - s} ${y} Q${x} ${y} ${x} ${y - s} Z" fill="${i % 3 === 0 ? "var(--color-holiday-sparkle)" : "var(--color-holiday-gold)"}" opacity="${1 - i * 0.07}"/>`
+        : `<circle cx="${x}" cy="${y}" r="${s}" fill="var(--color-holiday-gold)" opacity="${0.9 - i * 0.07}"/>`;
+      return `<g class="sleigh-sparkle" style="animation-delay:${delay}s">${shape}</g>`;
+    }).join("");
+    return svg(
+      `viewBox="0 -8 ${w} ${vh}" height="${h}" width="${(h * w) / vh}"`,
+      trail +
+        '<path d="M40 14 Q70 24 96 22 T158 13" fill="none" stroke="var(--color-holiday-gold)" stroke-width="1.2"/>' +
+        reindeer(82, 24) +
+        reindeer(116, 21) +
+        reindeer(150, 18, true) +
+        // sack
+        '<circle cx="13" cy="14" r="9" fill="var(--color-holiday-trunk)"/>' +
+        '<path d="M8 7 Q13 4 18 7" stroke="var(--color-holiday-gold)" stroke-width="1.6" fill="none"/>' +
+        // Santa
+        '<circle cx="33" cy="16" r="8.5" fill="var(--color-holiday-red)"/>' +
+        '<circle cx="38" cy="6" r="4.6" fill="var(--color-holiday-skin)"/>' +
+        '<ellipse cx="39" cy="10.5" rx="4.4" ry="3.6" fill="var(--color-holiday-fur)"/>' +
+        '<path d="M33.5 4 L42.5 3 L37 -4.5 Z" fill="var(--color-holiday-red)"/>' +
+        '<circle cx="36.6" cy="-5" r="1.8" fill="var(--color-holiday-fur)"/>' +
+        '<rect x="33" y="2.6" width="10" height="2.4" rx="1.2" fill="var(--color-holiday-fur)"/>' +
+        // sleigh body + runner
+        '<path d="M4 34 L8 19 Q10 15 16 17 L46 21 Q53 22 55 27 L57 34 Z" fill="var(--color-holiday-red)"/>' +
+        '<path d="M8 26 H54" stroke="var(--color-holiday-gold)" stroke-width="1.4"/>' +
+        '<path d="M2 37 Q3 42 11 42 H51 Q59 42 60 35 Q61 30 56 30" fill="none" stroke="var(--color-holiday-gold)" stroke-width="2.6" stroke-linecap="round"/>' +
+        '<path d="M18 34 V41 M44 34 V41" stroke="var(--color-holiday-gold)" stroke-width="2"/>'
+    );
+  }
+
+  // --- Snowfall (seeded, so every load looks the same) ---------------------
+  function mulberry32(seed) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function snowfall(count) {
+    const rand = mulberry32(1225);
+    let html = "";
+    for (let i = 0; i < count; i++) {
+      const r = rand();
+      const left = rand() * 100;
+      const size = (2 + r * 5) * 0.7;
+      const opacity = 0.35 + r * 0.55;
+      const fall = (14 - r * 7) / 3;
+      const sway = 3 + rand() * 3;
+      const delay = -rand() * 14;
+      html +=
+        `<span class="snowflake-contained" style="left:${left.toFixed(2)}%;animation-duration:${fall.toFixed(2)}s;animation-delay:${(delay / 3).toFixed(2)}s">` +
+        `<span class="snowflake-sway" style="width:${size.toFixed(2)}px;height:${size.toFixed(2)}px;opacity:${opacity.toFixed(2)};animation-duration:${sway.toFixed(2)}s;animation-delay:${delay.toFixed(2)}s"></span>` +
+        "</span>";
+    }
+    return `<div class="snowfall" aria-hidden="true">${html}</div>`;
+  }
+
+  // --- Sky events scheduler ----------------------------------------------
+  function startSky(sky) {
+    const timers = new Set();
+    const spawn = (kind) => {
+      if (document.hidden || reduceMotion.matches) return;
+      const el = document.createElement(kind === "santa" ? "div" : "span");
+      if (kind === "santa") {
+        el.className = "santa-flight";
+        el.innerHTML = `<div class="santa-bob">${sleigh()}</div>`;
+      } else {
+        el.className = "shooting-star";
+        el.style.right = `${8 + Math.random() * 36}%`;
+      }
+      el.addEventListener("animationend", (e) => {
+        if (e.target === el) el.remove();
+      });
+      sky.appendChild(el);
+    };
+    const schedule = (kind, delay) => {
+      const id = window.setTimeout(() => {
+        timers.delete(id);
+        spawn(kind);
+        const [, mean, jitter] = TIMING[kind];
+        schedule(kind, mean + (Math.random() * 2 - 1) * jitter);
+      }, delay);
+      timers.add(id);
+    };
+    schedule("santa", TIMING.santa[0]);
+    schedule("star", TIMING.star[0]);
+    return () => {
+      timers.forEach((id) => window.clearTimeout(id));
+      timers.clear();
+      sky.replaceChildren();
+    };
+  }
+
+  // --- Mount ----------------------------------------------------------------
+  // The visitor's toggle (localStorage) wins; <html data-navidad-fx> is the default.
+  function isOn() {
+    let stored = null;
+    try {
+      stored = localStorage.getItem(STORAGE_KEY);
+    } catch {
+      /* storage blocked */
+    }
+    if (stored === "on" || stored === "off") return stored === "on";
+    return document.documentElement.dataset.navidadFx !== "off";
+  }
+
+  function mount(header) {
+    const logo = header.querySelector("[data-navidad-logo]");
+    const layer = document.createElement("div");
+    layer.className = "navidad-fx-layer";
+    layer.setAttribute("aria-hidden", "true");
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "navidad-fx-toggle";
+    header.appendChild(toggle);
+    header.prepend(layer);
+
+    let stopSky = null;
+    let hat = null;
+
+    const render = () => {
+      const on = isOn();
+      toggle.textContent = on ? "❄ Efectos: sí" : "❄ Efectos: no";
+      toggle.setAttribute("aria-pressed", String(on));
+      toggle.title = on ? "Desactivar efectos navideños" : "Activar efectos navideños";
+      if (stopSky) stopSky();
+      stopSky = null;
+      layer.replaceChildren();
+      if (hat) hat.remove();
+      hat = null;
+      if (!on) return;
+      layer.innerHTML = snowfall(18) + scene() + '<div class="sky-events" aria-hidden="true"></div>';
+      stopSky = startSky(layer.querySelector(".sky-events"));
+      if (logo) {
+        logo.insertAdjacentHTML("beforeend", HAT);
+        hat = logo.lastElementChild;
+      }
+    };
+
+    toggle.addEventListener("click", () => {
+      const next = isOn() ? "off" : "on";
+      try {
+        localStorage.setItem(STORAGE_KEY, next);
+      } catch {
+        /* storage blocked: toggle only for this page view */
+      }
+      document.documentElement.dataset.navidadFx = next;
+      render();
+    });
+    render();
+  }
+
+  function init() {
+    const header = document.querySelector("[data-navidad-header]");
+    if (header && !header.dataset.navidadFxMounted) {
+      header.dataset.navidadFxMounted = "1";
+      mount(header);
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+
+</script>
+</body>
+</html>
