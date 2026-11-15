@@ -2085,7 +2085,9 @@ paint = function (block) {
   _paint(block);
   if (block.id !== "grinch") return;
   const st = state.get(block.id);
-  if (st.pane !== 0) return;
+  // only on «Paso a paso» (the first pane after the «Valor de negocio» tab)
+  const panes = [...block.querySelectorAll(".pane")];
+  if (panes[st.pane] !== panes.find((p) => !p.classList.contains("biz-pane"))) return;
   if (st.step === 3 && fxOnNow() && !glass) grinchAttack();
   if (st.step >= 5 && glass) grinchRepair();
   if (st.step < 3 && glass) grinchRepair(false);

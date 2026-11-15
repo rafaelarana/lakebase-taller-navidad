@@ -10,6 +10,7 @@ script with a SQL runner. Nothing here touches the *_sync tables.
 """
 from __future__ import annotations
 
+import re
 import time
 from pathlib import Path
 from typing import Any, Callable
@@ -212,9 +213,23 @@ def ensure_read_replica(client: Any, *, project_id: str, endpoint_id: str = REPL
     existing = [e for e in client.postgres.list_endpoints(parent=branch) if e.name == name]
     if not existing:
         t0 = time.time()
-        client.postgres.create_endpoint(parent=branch, endpoint_id=endpoint_id, endpoint=Endpoint(spec=EndpointSpec(
-            endpoint_type=EndpointType.ENDPOINT_TYPE_READ_ONLY, autoscaling_limit_min_cu=min_cu,
-            autoscaling_limit_max_cu=max_cu))).wait()
+
+        def create(lo: float, hi: float) -> None:
+            client.postgres.create_endpoint(parent=branch, endpoint_id=endpoint_id, endpoint=Endpoint(spec=EndpointSpec(
+                endpoint_type=EndpointType.ENDPOINT_TYPE_READ_ONLY, autoscaling_limit_min_cu=lo,
+                autoscaling_limit_max_cu=hi))).wait()
+
+        try:
+            create(min_cu, max_cu)
+        except Exception as exc:
+            # Free Edition: «Requested compute size (4.0 CU) exceeds the maximum allowed (1.0 CU) for this workspace
+            # tier» → retry at the tier's cap
+            cap = re.search(r"maximum allowed \(([\d.]+) CU\)", str(exc))
+            if not cap:
+                raise
+            hi = float(cap.group(1))
+            log(f"read replica capped at {hi:g} CU by the workspace tier")
+            create(min(min_cu, hi), hi)
         log(f"read replica {endpoint_id} created in {time.time() - t0:.0f} s")
     else:
         log(f"read replica {endpoint_id} already exists")

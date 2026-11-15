@@ -183,3 +183,20 @@ def test_ingest_identity_gives_up_with_a_clear_message():
         service_principal_secrets_proxy=NS(create=deny))
     with pytest.raises(RuntimeError, match="admin del workspace"):
         ensure_ingest_identity(client, log=lambda m: None, sleep=lambda s: None, attempts=3, wait_s=0)
+
+
+def test_read_replica_falls_back_to_the_tier_cap():
+    from types import SimpleNamespace as NS
+    from provision_live import ensure_read_replica
+
+    calls = []
+
+    def create_endpoint(parent, endpoint_id, endpoint):
+        calls.append(endpoint.spec.autoscaling_limit_max_cu)
+        if endpoint.spec.autoscaling_limit_max_cu > 1:
+            raise RuntimeError("Requested compute size (4.0 CU) exceeds the maximum allowed (1.0 CU) for this workspace tier.")
+        return NS(wait=lambda: None)
+
+    pg = NS(list_endpoints=lambda parent: [], create_endpoint=create_endpoint, get_endpoint=lambda name: NS(name=name))
+    ep = ensure_read_replica(NS(postgres=pg), project_id="navidad-x", log=lambda m: None)
+    assert calls == [4.0, 1.0] and ep.name.endswith("/endpoints/replica")

@@ -28,7 +28,7 @@ from databricks.sdk import WorkspaceClient
 
 nb_path = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get()
 sys.path.insert(0, str(Path("/Workspace" + nb_path).parents[2] / "navidad-hack-infra" / "scripts"))
-from plan import slugify
+from plan import slugify, workspace_source_path
 from provision_live import live_job_name, remove_ingest_identity
 
 w = WorkspaceClient()
@@ -79,10 +79,16 @@ def delete_synced(t):
             print(f"  · pipeline huérfano de {t}_sync borrado ({', '.join(ids)})")
     except Exception as cleanup_exc:
         print(f"  · no se pudo limpiar el pipeline de {t}_sync: {str(cleanup_exc)[:120]}")
+    if "dependent objects exist" in str(error):
+        # workshop views (navidad_live / navidad_search) read this table: it goes away with the project purge below
+        raise RuntimeError("tiene vistas del taller que dependen de ella; se borra al purgar el proyecto (siguiente paso)") from error
     raise error
 
 attempt(f"job {live_job_name(project_id)}", delete_live_job)
 attempt(f"app {app_name}", lambda: w.apps.delete(name=app_name))
+# the app's generated source code (uploaded by 00 for the deployment)
+app_src = workspace_source_path(w.current_user.me().user_name, project_id)
+attempt(f"código del app {app_src}", lambda: w.workspace.delete(app_src, recursive=True))
 for table in ("households", "people", "preferences", "journeys"):
     attempt(f"synced table {table}_sync", lambda t=table: delete_synced(t))
 # purge=True: no 7-day soft-delete, so 00_workbench can recreate the project with the same name
