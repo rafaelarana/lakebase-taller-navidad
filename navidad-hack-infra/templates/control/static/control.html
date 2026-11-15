@@ -20,7 +20,7 @@
   .live.off { background: #eee; color: var(--muted); } .live.off i { background: #bbb; animation: none; }
   @keyframes blink { 50% { opacity: .25 } }
   .pill { background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 0.15rem 0.6rem; color: #4b5563; }
-  .runctl { display: inline-flex; align-items: center; gap: 0.4rem; margin-left: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 0.25rem 0.4rem; }
+  .runctl { display: inline-flex; align-items: center; gap: 0.4rem; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 0.25rem 0.4rem; }
   .runctl button { border: 0; border-radius: 8px; padding: 0.35rem 0.75rem; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
   .runctl .play { background: var(--ok); color: #fff; } .runctl .stop { background: var(--bad); color: #fff; }
   .runctl button:disabled { opacity: .35; cursor: not-allowed; }
@@ -101,13 +101,6 @@
 </header>
 
 <div class="bar">
-  <span class="live off" id="live"><i></i><span id="liveTxt">SIN DATOS</span></span>
-  <label>Ejecución <select id="run"></select></label>
-  <span class="pill" id="mode">—</span>
-  <span class="pill" id="speed">—</span>
-  <span class="pill" id="reads" title="De dónde lee el panel">Lecturas: —</span>
-  <span id="status" style="color:var(--muted)"></span>
-  <span class="kstamp">KPIs cada <span class="seg2" id="kEvery"><button data-s="5" class="on">5 s</button><button data-s="30">30 s</button></span> · <span id="kStamp">—</span></span>
   <span class="runctl" id="runctl" title="Lanza o para el job navidad-live (notebooks 04 + 05)">
     <select id="jCampaign" aria-label="Noche"><option value="nochebuena">Nochebuena</option><option value="reyes">Reyes</option></select>
     <select id="jMinutes" aria-label="Duración"><option value="5">5 min</option><option value="10">10 min</option><option value="15" selected>15 min</option><option value="30">30 min</option></select>
@@ -117,6 +110,13 @@
     <button class="stop" id="jStop" disabled>■ Parar</button>
     <span class="js" id="jStatus"></span>
   </span>
+  <span class="live off" id="live"><i></i><span id="liveTxt">SIN DATOS</span></span>
+  <label>Ejecución <select id="run"></select></label>
+  <span class="pill" id="mode">—</span>
+  <span class="pill" id="speed">—</span>
+  <span class="pill" id="reads" title="De dónde lee el panel">Lecturas: —</span>
+  <span id="status" style="color:var(--muted)"></span>
+  <span class="kstamp">KPIs cada <span class="seg2" id="kEvery"><button data-s="5" class="on">5 s</button><button data-s="30">30 s</button></span> · <span id="kStamp">—</span></span>
 </div>
 
 <div class="kpis">
