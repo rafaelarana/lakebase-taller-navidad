@@ -332,7 +332,8 @@ def test_state_says_not_prepared_when_navidad_live_is_missing(monkeypatch, tmp_p
 
 def test_workbench_prepares_the_control_center():
     nb = (Path(__file__).resolve().parents[2] / "workshop" / "notebooks" / "00_workbench.py").read_text()
-    assert "provision_live(conn=db.conn, schema=schema, app_sp=app_sp)" in nb and "ensure_live_job(" in nb
+    assert "provision_live(conn=db.conn, schema=schema, app_sp=app_sp" in nb and "ensure_live_job(" in nb
+    assert "ensure_ingest_identity(w)" in nb  # Zerobus identity up front: the ▶ job never races for it
 
 
 def test_stop_without_a_job_run_leaves_the_night_alone():

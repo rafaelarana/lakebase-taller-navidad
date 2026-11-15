@@ -137,3 +137,49 @@ def test_every_table_the_app_writes_is_granted():
     for t in writes:
         assert re.search(rf"GRANT [^;]*(UPDATE|INSERT)[^;]* ON navidad_live\.{t} TO", g), t
     assert 'GRANT UPDATE (status, ended_at) ON navidad_live.sim_run TO "sp"' in g
+
+
+def test_ingest_identity_retries_while_a_new_service_principal_propagates():
+    from types import SimpleNamespace as NS
+    from provision_live import ensure_ingest_identity
+
+    class PermissionDenied(Exception):
+        pass
+
+    calls = {"n": 0}
+
+    class Proxy:
+        def create(self, service_principal_id):
+            calls["n"] += 1
+            if calls["n"] < 3:
+                raise PermissionDenied("User is not authorized to perform this operation.")
+            return NS(secret="s3cret")
+
+    put = {}
+    client = NS(
+        service_principals=NS(list=lambda filter: [], create=lambda display_name: NS(id="7", application_id="app-7")),
+        secrets=NS(list_scopes=lambda: [], create_scope=lambda scope: None, list_secrets=lambda scope: [],
+                   put_secret=lambda scope, key, string_value: put.update({key: string_value})),
+        service_principal_secrets_proxy=Proxy())
+    slept = []
+    assert ensure_ingest_identity(client, log=lambda m: None, sleep=slept.append, wait_s=1) == "app-7"
+    assert calls["n"] == 3 and slept == [1, 1] and put == {"client_id": "app-7", "client_secret": "s3cret"}
+
+
+def test_ingest_identity_gives_up_with_a_clear_message():
+    import pytest
+    from types import SimpleNamespace as NS
+    from provision_live import ensure_ingest_identity
+
+    class PermissionDenied(Exception):
+        pass
+
+    def deny(service_principal_id):
+        raise PermissionDenied("User is not authorized to perform this operation.")
+
+    client = NS(
+        service_principals=NS(list=lambda filter: [NS(id="7", application_id="app-7")]),
+        secrets=NS(list_scopes=lambda: [NS(name="navidad-live")], list_secrets=lambda scope: []),
+        service_principal_secrets_proxy=NS(create=deny))
+    with pytest.raises(RuntimeError, match="admin del workspace"):
+        ensure_ingest_identity(client, log=lambda m: None, sleep=lambda s: None, attempts=3, wait_s=0)

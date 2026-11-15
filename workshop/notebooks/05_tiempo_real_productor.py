@@ -129,6 +129,21 @@ class ZerobusSink:
         host = w.postgres.get_endpoint(name=f"projects/{project_id}/branches/production/endpoints/primary").status.hosts.host
         self.endpoint = zerobus_endpoint(w.get_workspace_id(), host, cloud="azure" if w.config.is_azure else "aws")
         self.sdk = ZerobusSdk(self.endpoint, w.config.host)
+        # In the ▶ job, 04 (which creates the Zerobus identity on a fresh workspace) starts at the same time:
+        # wait for its secret instead of failing with «Secret does not exist».
+        def identity_ready() -> bool:
+            if not any(sc.name == SECRET_SCOPE for sc in w.secrets.list_scopes()):
+                return False
+            return {"client_id", "client_secret"} <= {k.key for k in w.secrets.list_secrets(scope=SECRET_SCOPE)}
+
+        for i in range(30):
+            if identity_ready():
+                break
+            if i == 0:
+                print("esperando a la identidad de Zerobus (la prepara 00 paso 5 o 04_tiempo_real_stream)…")
+            time.sleep(10)
+        else:
+            raise RuntimeError(f"Falta el secreto {SECRET_SCOPE}/client_id: ejecuta 00 (paso 5) o 04_tiempo_real_stream una vez")
         self.args = (dbutils.secrets.get(SECRET_SCOPE, "client_id"), dbutils.secrets.get(SECRET_SCOPE, "client_secret"),
                      TableProperties(f"{catalog}.{schema}.{BRONZE_TABLE}"),
                      StreamConfigurationOptions(record_type=RecordType.JSON))

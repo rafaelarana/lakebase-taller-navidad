@@ -144,19 +144,27 @@ if with_incidents:
 
 # MAGIC %md ## 5 · Centro de control: tablas `navidad_live` y job ▶ / ■
 # MAGIC Deja `/control` listo («No hay ejecuciones») y crea el job `navidad-live-<slug>` (04 + 05) que lanzan los botones ▶ / ■ del app.
-# MAGIC La identidad de Zerobus y la tabla bronze las prepara `04_tiempo_real_stream` al arrancar.
+# MAGIC También crea la identidad de Zerobus (service principal + secreto OAuth, requiere admin del workspace) y la tabla bronze; `04` lo vuelve a comprobar al arrancar.
 
 # COMMAND ----------
 
 if with_incidents:  # the control center ships with the workshop app template
     from pg import Pg
-    from provision_live import ensure_live_job, provision_live
+    from provision_live import ensure_ingest_identity, ensure_live_job, provision_live
 
     t0 = time.time()
     app_sp = w.apps.get(name=app_name).service_principal_client_id
+    # Zerobus identity (service principal + OAuth secret) now, so the ▶ job never races for it.
+    # Not fatal: without it «Directo a Lakebase» still works and 04 retries.
+    try:
+        ingest_app_id = ensure_ingest_identity(w)
+    except Exception as exc:
+        ingest_app_id = None
+        print("⚠ identidad de Zerobus no creada:", str(exc)[:300])
     db = Pg(w, me, f"projects/{project_id}/branches/production")
     try:
-        provision_live(conn=db.conn, schema=schema, app_sp=app_sp)
+        provision_live(conn=db.conn, schema=schema, app_sp=app_sp, run_uc_sql=spark.sql, catalog=catalog,
+                       ingest_application_id=ingest_app_id)
     finally:
         db.close()  # do not keep the compute awake (Free Edition: 1 CU)
     ensure_live_job(w, project_id=project_id, notebook_dir=str(Path("/Workspace" + nb_path).parent), catalog=catalog,

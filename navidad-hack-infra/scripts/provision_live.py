@@ -86,8 +86,27 @@ def app_grants(app_sp: str) -> list[str]:
     return out
 
 
+def _create_sp_secret(client: Any, sp_id: int, attempts: int, wait_s: float, log: Callable[[str], None],
+                      sleep: Callable[[float], None]) -> str:
+    """A service principal created seconds ago is not yet known to the OAuth secrets service: the first
+    calls fail with PermissionDenied / NotFound for a minute or two (seen on a fresh workspace). Retry."""
+    for i in range(1, attempts + 1):
+        try:
+            return client.service_principal_secrets_proxy.create(service_principal_id=sp_id).secret
+        except Exception as exc:
+            transient = type(exc).__name__ in ("PermissionDenied", "NotFound") or "not authorized" in str(exc)
+            if not transient or i == attempts:
+                raise RuntimeError(
+                    f"No se pudo crear el secreto OAuth del service principal de Zerobus ({exc}). Hace falta ser "
+                    "admin del workspace; si acabas de crearlo, espera un par de minutos y vuelve a ejecutar.") from exc
+            log(f"Zerobus identity: service principal not ready yet ({type(exc).__name__}), retry {i}/{attempts - 1} in {wait_s:.0f} s")
+            sleep(wait_s)
+    raise AssertionError("unreachable")
+
+
 def ensure_ingest_identity(client: Any, scope: str = SECRET_SCOPE, name: str = INGEST_SP,
-                           log: Callable[[str], None] = print) -> str:
+                           log: Callable[[str], None] = print, attempts: int = 10, wait_s: float = 20,
+                           sleep: Callable[[float], None] = time.sleep) -> str:
     """Service principal + OAuth secret stored as <scope>/client_id and <scope>/client_secret.
     Returns the application id. Reuses an existing secret scope entry if both keys exist."""
     existing = [s for s in client.service_principals.list(filter=f'displayName eq "{name}"')]
@@ -98,7 +117,7 @@ def ensure_ingest_identity(client: Any, scope: str = SECRET_SCOPE, name: str = I
     if {"client_id", "client_secret"} <= keys:
         log(f"Zerobus identity: {name} ({sp.application_id}) · secrets already in scope {scope}")
         return sp.application_id
-    secret = client.service_principal_secrets_proxy.create(service_principal_id=int(sp.id)).secret
+    secret = _create_sp_secret(client, int(sp.id), attempts, wait_s, log, sleep)
     client.secrets.put_secret(scope=scope, key="client_id", string_value=sp.application_id)
     client.secrets.put_secret(scope=scope, key="client_secret", string_value=secret)  # never printed
     log(f"Zerobus identity: {name} ({sp.application_id}) · new OAuth secret stored in scope {scope}")
