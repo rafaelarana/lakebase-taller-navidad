@@ -7,23 +7,43 @@
 
 # COMMAND ----------
 
-import shutil
+# MAGIC %pip install "databricks-sdk==0.122.0"
+# MAGIC dbutils.library.restartPython()
+
+# COMMAND ----------
+
+import io
 from pathlib import Path
 
 from databricks.sdk import WorkspaceClient
+from databricks.sdk.errors import NotFound
+from databricks.sdk.service.workspace import ImportFormat
 
 nb_path = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get()
 repo = Path("/Workspace" + nb_path).parents[2]
 me = dbutils.notebook.entry_point.getDbutils().notebook().getContext().userName().get()
-dest = Path(f"/Workspace/Users/{me}/.assistant/skills")
-dest.mkdir(parents=True, exist_ok=True)
-skip = shutil.ignore_patterns("tests", "tools", "__pycache__", ".pytest_cache", "copied-apps")
+w = WorkspaceClient()
+dest = f"/Users/{me}/.assistant/skills"
+SKIP = {"tests", "tools", "__pycache__", ".pytest_cache", "copied-apps"}
+
+# Everything goes through the Workspace API (server-side), never through the /Workspace file view: on a
+# re-install that view can still show the folder that was just deleted (shutil.rmtree → «Directory not empty»).
+errors = []
 for skill in ("navidad-hack-infra", "navidad-hack-build-assistant"):
-    target = dest / skill
-    if target.exists():
-        # shutil.rmtree on /Workspace fails with «Directory not empty» on a re-install: delete through the
-        # Workspace API (recursive, server-side). The /Workspace view can lag a few seconds, so copy with
-        # dirs_exist_ok instead of waiting for the folder to disappear.
-        WorkspaceClient().workspace.delete(str(target)[len("/Workspace"):], recursive=True)
-    shutil.copytree(repo / skill, target, ignore=skip, dirs_exist_ok=True)
-    print("instalada:", target)
+    target = f"{dest}/{skill}"
+    try:
+        try:
+            w.workspace.delete(target, recursive=True)
+        except NotFound:
+            pass
+        src = repo / skill
+        files = [f for f in src.rglob("*") if f.is_file() and not SKIP & set(f.relative_to(src).parts)]
+        for d in sorted({f.relative_to(src).parent for f in files}):
+            w.workspace.mkdirs(f"{target}/{d}".rstrip("/."))
+        for f in files:
+            w.workspace.upload(f"{target}/{f.relative_to(src)}", io.BytesIO(f.read_bytes()), format=ImportFormat.AUTO,
+                               overwrite=True)
+        print(f"instalada: /Workspace{target} ({len(files)} ficheros)")
+    except Exception as exc:  # keep going with the other skill, report at the end
+        errors.append(f"{skill}: {exc}")
+assert not errors, "No se pudo instalar: " + " · ".join(errors)

@@ -155,7 +155,10 @@ if with_incidents:  # the control center ships with the workshop app template
     t0 = time.time()
     app_sp = w.apps.get(name=app_name).service_principal_client_id
     db = Pg(w, me, f"projects/{project_id}/branches/production")
-    provision_live(conn=db.conn, schema=schema, app_sp=app_sp)
+    try:
+        provision_live(conn=db.conn, schema=schema, app_sp=app_sp)
+    finally:
+        db.close()  # do not keep the compute awake (Free Edition: 1 CU)
     ensure_live_job(w, project_id=project_id, notebook_dir=str(Path("/Workspace" + nb_path).parent), catalog=catalog,
                     suffix=suffix, app_sp=app_sp)
     timings["5_control"] = round(time.time() - t0)
@@ -168,9 +171,12 @@ if with_incidents:  # the control center ships with the workshop app template
 
 total = sum(timings.values())
 print("Tiempos (s):", timings, "· total", total)
+extra = (f'<p>Planificador: <a href="{app_url}/planner" target="_blank">{app_url}/planner</a> · '
+         f'Centro de control: <a href="{app_url}/control" target="_blank">{app_url}/control</a></p>') if with_incidents else \
+        "<p>Pista de incidencias y centro de control no instalados (widget <code>incidents</code> = no).</p>"
 displayHTML(f"""
 <h3>Taller de Navidad listo en {total // 60} min {total % 60} s</h3>
 <p>Mapa de rutas: <a href="{app_url}" target="_blank">{app_url}</a></p>
-<p>Planificador: <a href="{app_url}/planner" target="_blank">{app_url}/planner</a> · Centro de control: <a href="{app_url}/control" target="_blank">{app_url}/control</a></p>
+{extra}
 <p>Lakebase: proyecto <code>{project_id}</code> · esquema <code>{schema}</code></p>
 """)

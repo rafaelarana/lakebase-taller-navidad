@@ -49,7 +49,7 @@ Lakebase production · schema navidad_live
 | Zerobus → Delta (commit every 5 s) → Spark (3 stateful queries) → sink | ≈ 14 s | ≈ 23 s |
 | Future: classic `processingTime` / Real-Time Mode | not measured (serverless-only workspace) | |
 
-Exception profiles: rates and codes vary by region (`live_sim.REGIONS`: north = weather, big cities = addresses, islands = transport, south lower); an optional incident (`INCIDENTS`: DANA Valencia, cortes Barcelona, Filomena Madrid) bursts exceptions inside its `navidad_geo.zone` between 35 % and 65 % of the night, and the app draws the zone.
+Exception profiles: rates and codes vary by region (`live_sim.REGIONS`: north = weather, big cities = addresses, islands = transport, south lower); an optional incident (`INCIDENTS`: DANA Valencia, cortes Barcelona, Filomena Madrid) bursts exceptions inside its `navidad_geo.zone` during the middle 35–65 % of **that zone's own visits** (`live_sim.burst_window`, ranked by arrival time; not a fixed share of the night — Hilbert routes visit a zone in short blocks, so a fixed night window would miss it), and the app draws the zone.
 
 ## Explore → Interpret → Build
 

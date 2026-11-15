@@ -145,6 +145,10 @@ def _check_households_match(spark: Any, fqn: str, dataset: NavidadDataset) -> No
     try:
         row = spark.sql(f"SELECT count(*) AS n, max(household_id) AS m FROM {fqn}").first()
     except Exception as exc:
+        # only a missing table means «write all four first»; permissions or transient errors keep their own
+        # message, so nobody overwrites households/people/preferences by mistake
+        if "TABLE_OR_VIEW_NOT_FOUND" not in str(exc):
+            raise
         raise ValueError(
             f"{fqn} not found: write all four tables first (tables=None)"
         ) from exc

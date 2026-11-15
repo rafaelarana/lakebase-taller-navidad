@@ -55,12 +55,31 @@ def delete_live_job():
 
 def delete_synced(t):
     fqn = f"{catalog}.{schema}.{t}_sync"
+    name = f"synced_tables/{fqn}"
+    pipeline_id = None
     try:
-        w.postgres.delete_synced_table(name=f"synced_tables/{fqn}")
-    finally:
-        # A failed delete (or a project purged first) leaves the sync pipeline orphaned: remove it by name.
-        for p in w.pipelines.list_pipelines(filter=f"name LIKE 'Synced table: {fqn}%'"):
-            w.pipelines.delete(pipeline_id=p.pipeline_id)
+        pipeline_id = w.postgres.get_synced_table(name=name).status.pipeline_id
+    except Exception:
+        pass  # already gone, or the project was purged first
+    try:
+        w.postgres.delete_synced_table(name=name)
+        return
+    except Exception as exc:
+        error = exc
+    # The delete failed: remove the orphaned sync pipeline. Its name is «Synced table: <fqn> <suffix>»; match the
+    # prefix exactly in Python (in LIKE, «_» would be a wildcard).
+    prefix = f"Synced table: {fqn}"
+    try:
+        ids = {pipeline_id} if pipeline_id else set()
+        ids |= {p.pipeline_id for p in w.pipelines.list_pipelines(filter=f"name LIKE '{prefix}%'")
+                if p.name == prefix or (p.name or "").startswith(prefix + " ")}
+        for pid in ids:
+            w.pipelines.delete(pipeline_id=pid)
+        if ids:
+            print(f"  · pipeline huérfano de {t}_sync borrado ({', '.join(ids)})")
+    except Exception as cleanup_exc:
+        print(f"  · no se pudo limpiar el pipeline de {t}_sync: {str(cleanup_exc)[:120]}")
+    raise error
 
 attempt(f"job {live_job_name(project_id)}", delete_live_job)
 attempt(f"app {app_name}", lambda: w.apps.delete(name=app_name))

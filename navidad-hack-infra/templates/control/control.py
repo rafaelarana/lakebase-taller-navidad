@@ -595,11 +595,21 @@ class LiveJob:
 
     def stop(self) -> dict[str, Any]:
         runs = self._runs(active_only=True)
+        if not runs:
+            # nothing launched from the app is running (e.g. 05 started by hand): leave its night alone
+            raise ValueError("no hay ninguna noche del job en marcha; si lanzaste 05 a mano, páralo en el notebook")
+        cancelled, failed = [], []
         for r in runs:
-            self.db.client.jobs.cancel_run(run_id=r.run_id)
+            try:
+                self.db.client.jobs.cancel_run(run_id=r.run_id)
+                cancelled.append(r.run_id)
+            except Exception as exc:  # keep going, report below
+                failed.append(f"{r.run_id}: {exc}")
+        if failed:
+            raise RuntimeError("no se pudo parar el job: " + "; ".join(failed))
         # the producer may be killed before its finally: block, so close the night here
         self.db.q("UPDATE navidad_live.sim_run SET status = 'cancelada', ended_at = now() WHERE status = 'en_curso'")
-        return {"cancelled": [r.run_id for r in runs]}
+        return {"cancelled": cancelled}
 
 
 NOT_PREPARED = ("El centro de control aún no está preparado en este workbench: ejecuta el paso 5 de 00_workbench "
@@ -607,9 +617,13 @@ NOT_PREPARED = ("El centro de control aún no está preparado en este workbench:
 
 
 def _not_prepared(exc: BaseException) -> bool:
-    """navidad_live (tables/views) missing: Postgres 42P01 undefined_table / 3F000 invalid_schema_name."""
-    return getattr(exc, "pgcode", None) in ("42P01", "3F000") or 'relation "navidad_live.' in str(exc) \
-        or 'schema "navidad_live"' in str(exc)
+    """Only the control center's own schema missing (navidad_live tables/views): 42P01 undefined_table /
+    3F000 invalid_schema_name *about navidad_live*. Other missing relations (navidad_geo, *_sync) keep
+    their real error instead of pointing the user at 00 step 5."""
+    msg = str(exc)
+    if "navidad_live" not in msg:
+        return False
+    return getattr(exc, "pgcode", None) in ("42P01", "3F000") or "does not exist" in msg
 
 
 def mount_control(app: FastAPI, static_dir: Path, complete: Callable[[str], str] | None = None,

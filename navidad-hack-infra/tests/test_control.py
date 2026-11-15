@@ -333,3 +333,30 @@ def test_state_says_not_prepared_when_navidad_live_is_missing(monkeypatch, tmp_p
 def test_workbench_prepares_the_control_center():
     nb = (Path(__file__).resolve().parents[2] / "workshop" / "notebooks" / "00_workbench.py").read_text()
     assert "provision_live(conn=db.conn, schema=schema, app_sp=app_sp)" in nb and "ensure_live_job(" in nb
+
+
+def test_stop_without_a_job_run_leaves_the_night_alone():
+    db = JobDb(FakeJobs(active=False))
+    with pytest.raises(ValueError, match="a mano"):
+        control.LiveJob(db).stop()
+    assert not any("SET status = 'cancelada'" in s for s in db.sql)
+
+
+def test_stop_reports_a_failed_cancel_and_does_not_close_the_night():
+    class Failing(FakeJobs):
+        def cancel_run(self, run_id):
+            raise RuntimeError("PERMISSION_DENIED")
+
+    db = JobDb(Failing(active=True))
+    with pytest.raises(RuntimeError, match="no se pudo parar"):
+        control.LiveJob(db).stop()
+    assert not any("SET status = 'cancelada'" in s for s in db.sql)
+
+
+def test_not_prepared_only_for_navidad_live():
+    class E(Exception):
+        pgcode = "42P01"
+
+    assert control._not_prepared(E('relation "navidad_live.sim_run" does not exist'))
+    assert not control._not_prepared(E('relation "navidad_geo.zone" does not exist'))
+    assert not control._not_prepared(E('relation "navidad_x.households_sync" does not exist'))

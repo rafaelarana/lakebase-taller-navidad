@@ -187,7 +187,11 @@
   const st = { run: null, pinned: false, kEvery: 5, kLast: 0, citySort: "size", incident: null, zoneLayer: null, cursor: null, dots: [], helpers: new Map(), exc: new Map(), cityMarks: new Map(), busy: false, lastData: 0, open: null };
 
   // latency in seconds from the API (ms resolution): < 1 s → ms (direct to Lakebase ≈ 20 ms), else s with 1 decimal
-  const fmtS = (v) => v == null ? "—" : v < 1 ? `${Math.round(v * 1000)} ms` : `${(Math.round(v * 10) / 10).toFixed(1).replace(".", ",")} s`;
+  const fmtS = (v) => {
+    if (v == null) return "—";
+    const ms = Math.max(0, Math.round(v * 1000));   // clock skew can give tiny negatives → 0 ms
+    return ms < 1000 ? `${ms} ms` : `${(Math.round(v * 10) / 10).toFixed(1).replace(".", ",")} s`;
+  };
   async function getJSON(url, opts) {
     const r = await fetch(url, opts);
     if (!r.ok) {

@@ -184,11 +184,12 @@ def apply(html: str) -> str:
             return body
         # drop a previous insertion
         body = re.sub(r'<!-- BIZ-PANE -->.*?<!-- /BIZ-PANE -->\n  ', "", body, flags=re.S)
-        body = body.replace(TAB.replace('data-pane="0"', 'data-pane="0"'), "")
         body = re.sub(r'<button class="subtab biz-tab"[^>]*>.*?</button>', "", body, flags=re.S)
         body = re.sub(r'<li class="biz-note">.*?</li>', "", body, flags=re.S)
         # tabs: new first + renumber, only the business tab is active
         tabs = re.search(r'<div class="subtabs">(.*?)</div>', body, re.S)
+        if tabs is None or not re.search(r'<div class="pane[ "]', body):
+            raise SystemExit(f"section {sid}: needs <div class=\"subtabs\"> and at least one .pane to get a business tab")
         inner = re.sub(r'class="subtab active"', 'class="subtab"', tabs.group(1))
         btns = re.findall(r'<button class="subtab"[^>]*>.*?</button>', inner, re.S)
         btns = [re.sub(r'data-pane="\d+"', f'data-pane="{i + 1}"', b) for i, b in enumerate(btns)]
@@ -200,7 +201,8 @@ def apply(html: str) -> str:
         body = body[:first.start()] + "\n  <!-- BIZ-PANE -->" + pane + "<!-- /BIZ-PANE -->\n  " + body[first.start():].lstrip("\n").lstrip()
         # speaker note
         if sid in BIZ:
-            body = re.sub(r'(<div class="note-src"><h4>[^<]*</h4><ul>)', rf'\1<li class="biz-note"><b>Negocio:</b> {BIZ[sid]["note"]}</li>', body, count=1)
+            note = f'<li class="biz-note"><b>Negocio:</b> {BIZ[sid]["note"]}</li>'
+            body = re.sub(r'(<div class="note-src"><h4>[^<]*</h4><ul>)', lambda m: m.group(1) + note, body, count=1)
         return body
 
     html = re.sub(r'<section class="block" id="(\w+)".*?</section>', section, html, flags=re.S)

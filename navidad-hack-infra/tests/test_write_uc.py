@@ -178,3 +178,18 @@ def test_pandas_frames_are_typed_like_the_ddl():
     j = pandas_for("journeys", tables["journeys"])
     assert str(j["arrived_at_utc"].dtype).startswith("datetime64[") and str(j["arrived_at_utc"].dt.tz) == "UTC"
     assert str(j["route_id"].dtype) == "Int64" and str(j["is_revisit"].dtype) == "boolean"
+
+
+def test_journeys_only_rewrite_keeps_other_errors():
+    import pytest
+
+    class NoPermission(FakeSpark):
+        def sql(self, statement):
+            if statement.startswith("SELECT count(*)"):
+                raise RuntimeError("PERMISSION_DENIED: User does not have SELECT on Table")
+            return super().sql(statement)
+
+    fake = NoPermission()
+    with pytest.raises(RuntimeError, match="PERMISSION_DENIED"):
+        write_uc(catalog="c", schema="navidad_x", cfg=GenerateConfig(scale=0.0001), spark=fake, tables=["journeys"])
+    assert fake.saved == []
