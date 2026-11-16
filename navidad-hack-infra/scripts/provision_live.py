@@ -154,7 +154,9 @@ def live_job_settings(*, name: str, notebook_dir: str, catalog: str, suffix: str
     from databricks.sdk.service import jobs
 
     ref = lambda k: f"{{{{job.parameters.{k}}}}}"  # noqa: E731
-    stream = {"catalog": ref("catalog"), "suffix": ref("suffix"), "minutes": ref("stream_minutes")}
+    # Job parameters are pushed down to every task by key and override base_parameters, so each task
+    # parameter must be named like the job parameter it reads (04's widget is stream_minutes, not minutes).
+    stream = {k: ref(k) for k in ("catalog", "suffix", "stream_minutes")}
     producer = {k: ref(k) for k in ("catalog", "suffix", "campaign", "year", "minutes", "helpers", "exception_rate", "destino",
                                     "incident")}
     defaults = {**JOB_PARAMS, "catalog": catalog, "suffix": suffix}

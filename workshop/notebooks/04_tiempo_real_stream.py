@@ -26,7 +26,9 @@
 
 dbutils.widgets.text("catalog", "", "Catálogo (el de 00)")
 dbutils.widgets.text("suffix", "", "Sufijo usado en 00 (si lo pusiste)")
-dbutils.widgets.text("minutes", "45", "Minutos que corre el bucle")
+# widget key = the job parameter name: job parameters are pushed down to every task by key and win over
+# base_parameters, so a widget called "minutes" would get the producer's 15 instead of stream_minutes.
+dbutils.widgets.text("stream_minutes", "45", "Minutos que corre el bucle")
 
 # COMMAND ----------
 
@@ -135,7 +137,7 @@ QUERIES = {"delivery_status": q_deliveries, "helper_position": q_helpers, "excep
 # COMMAND ----------
 
 # Each query restarts as soon as its previous AvailableNow run ends, so a slower one never holds the others.
-deadline = time.time() + 60 * float(dbutils.widgets.get("minutes"))
+deadline = time.time() + 60 * float(dbutils.widgets.get("stream_minutes"))
 runs, started, it, last_log = {}, {}, 0, 0.0
 
 

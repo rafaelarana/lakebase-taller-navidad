@@ -225,10 +225,23 @@ def test_live_job_runs_both_notebooks_with_job_parameters():
     assert s["name"] == "navidad-live-rafa" and s["max_concurrent_runs"] == 1
     tasks = {t.task_key: t.notebook_task for t in s["tasks"]}
     assert tasks["stream"].notebook_path.endswith("04_tiempo_real_stream")
-    assert tasks["stream"].base_parameters["minutes"] == "{{job.parameters.stream_minutes}}"
+    assert tasks["stream"].base_parameters["stream_minutes"] == "{{job.parameters.stream_minutes}}"
     assert tasks["producer"].base_parameters["destino"] == "{{job.parameters.destino}}"
     assert {p.name: p.default for p in s["parameters"]}["catalog"] == "c"
     assert all(t.max_retries == 1 for t in s["tasks"])
+
+
+def test_live_job_task_parameters_match_job_parameter_names():
+    # job parameters are pushed down by key and win over base_parameters: a task parameter named like a
+    # job parameter must read that same job parameter (stream «minutes» used to get the producer's 15)
+    from provision_live import live_job_settings
+    s = live_job_settings(name="navidad-live-x", notebook_dir="/n", catalog="c", suffix="")
+    names = {p.name for p in s["parameters"]}
+    for t in s["tasks"]:
+        for k, v in t.notebook_task.base_parameters.items():
+            assert v == f"{{{{job.parameters.{k}}}}}" and k in names, (t.task_key, k, v)
+    nb = (Path(__file__).resolve().parents[2] / "workshop" / "notebooks" / "04_tiempo_real_stream.py").read_text()
+    assert 'widgets.text("stream_minutes"' in nb and 'widgets.get("minutes")' not in nb
 
 
 def test_play_passes_the_incident_and_validates_it():
