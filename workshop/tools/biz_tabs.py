@@ -4,7 +4,7 @@ Single source for the business texts. Idempotent: re-running replaces what it in
 (markers <!-- BIZ … --> in the HTML). Rules: never name competitors; only figures measured
 in the workshop (reference workspace) or taken from the docs.
 
-    python3 workshop/tools/biz_tabs.py            # rewrites workshop/deck/lakebase-agentes-es.html
+    python3 workshop/tools/biz_tabs.py            # rewrites workshop/deck/lakebase-agentes-es.html (ES only; the EN deck was translated from its output — edit lakebase-agents-en.html by hand)
 """
 from __future__ import annotations
 

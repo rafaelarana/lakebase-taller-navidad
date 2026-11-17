@@ -35,3 +35,5 @@ uv venv .venv --python 3.11 && uv pip install --python .venv/bin/python pytest f
 ```
 
 Regenerating land masks (only if city coordinates change) additionally needs `shapely` and `ne_10m_land.geojson`.
+
+> English edition: https://github.com/rafaelarana/lakebase-xmas-workshop
